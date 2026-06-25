@@ -50,7 +50,7 @@
       .card-history{grid-area:history;}.card-stats{grid-area:stats;}
       .card-controls{grid-area:controls;}.card-money{grid-area:money;}.card-log{grid-area:log;}
     }
-    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:0;overflow:hidden;}
     @media(min-width:680px){.card{padding:22px;border-radius:16px;}}
     .card-title{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
     .card-title svg{flex-shrink:0;}
@@ -141,28 +141,29 @@
     .mm-error{display:none;margin-top:6px;color:var(--red);font-size:.72rem;font-weight:600;}
     .mm-divider{height:1px;background:var(--border);margin:14px 0;}
 
-    /* formula hint */
+    /* formula hint — must wrap on narrow screens */
     .mm-formula{
       font-size:.72rem;color:var(--text-muted);background:var(--bg-card2);
-      border-radius:8px;padding:8px 12px;margin-bottom:14px;line-height:1.6;
+      border-radius:8px;padding:8px 12px;margin-bottom:14px;line-height:1.8;
       border-left:3px solid var(--gold);
+      overflow-wrap:break-word;word-break:break-word;
     }
-    .mm-formula strong{color:var(--gold);}
+    .mm-formula strong{color:var(--gold);display:block;margin-bottom:2px;}
 
     .mm-bet-callout{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:11px;padding:12px 16px;margin-bottom:14px;}
-    .mm-bet-left{display:flex;flex-direction:column;gap:2px;}
+    .mm-bet-left{display:flex;flex-direction:column;gap:2px;min-width:0;}
     .mm-bet-label{font-size:.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);opacity:.8;}
     .mm-bet-amount{font-size:1.7rem;font-weight:900;color:var(--gold);line-height:1;}
-    .mm-bet-right{font-size:.72rem;color:var(--text-muted);text-align:right;line-height:1.6;}
+    .mm-bet-right{font-size:.72rem;color:var(--text-muted);text-align:right;line-height:1.6;min-width:0;flex-shrink:1;}
     .mm-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
     @media(max-width:520px){.mm-stats-grid{grid-template-columns:1fr 1fr;}}
-    .mm-stat-box{background:var(--bg-card2);border-radius:10px;padding:10px 8px;text-align:center;}
+    .mm-stat-box{background:var(--bg-card2);border-radius:10px;padding:10px 8px;text-align:center;min-width:0;overflow:hidden;}
     .mm-stat-val{font-size:1rem;font-weight:800;line-height:1.2;color:var(--text-primary);word-break:break-all;}
     .mm-stat-val.green{color:var(--green);}.mm-stat-val.red{color:var(--red);}.mm-stat-val.gold{color:var(--gold);}.mm-stat-val.cyan{color:var(--accent-small);}
     .mm-stat-lbl{font-size:.58rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
     .mm-ladder-title{font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
     .mm-ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
-    .mm-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:7px 2px;text-align:center;transition:all .25s;min-width:0;}
+    .mm-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:7px 2px;text-align:center;transition:all .25s;min-width:0;overflow:hidden;}
     .mm-chip-num{font-size:.52rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
     .mm-chip-bet{font-size:.68rem;font-weight:800;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px;}
     .mm-chip.lost{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);}
@@ -511,10 +512,8 @@
     if(strategy!==2)return;
     const last4=history.slice(-4);
     if(last4.length<4)return;
-    // Alternating = every consecutive pair is different: B,S,B,S or S,B,S,B
     const isAlt=last4.every((v,i)=>i===0||v!==last4[i-1]);
     if(!isAlt)return;
-    // Build dot display
     const patEl=document.getElementById('alt-alert-pattern');
     patEl.innerHTML='';
     last4.forEach(v=>{
@@ -523,7 +522,6 @@
       d.textContent=v===1?'BIG':'SMALL';
       patEl.appendChild(d);
     });
-    // Tip
     const nextExpected=last4[3]===1?'SMALL':'BIG';
     document.getElementById('alt-alert-tip').textContent=
       'Next could be '+nextExpected+' if pattern continues. Strategy 2 will predict accordingly.';
@@ -595,8 +593,12 @@
     const chip=document.getElementById('mm-status-chip');
     chip.textContent='Active';chip.classList.add('active');
     document.getElementById('mm-live').style.display='block';
+    // Multi-line formula so it wraps cleanly on any screen width
     document.getElementById('mm-formula-hint').innerHTML=
-      `<strong>Formula:</strong> L1 = $${fmtNum(bet)} &nbsp;│&nbsp; L2 = L1 × ${mul} + L1 &nbsp;│&nbsp; LN = L(N-1) × ${mul} + sum of all previous bets`;
+      '<strong>Formula</strong>'
+      +'L1 = $'+fmtNum(bet)+'<br>'
+      +'L2 = L1 &times; '+mul+' + L1<br>'
+      +'LN = L(N-1) &times; '+mul+' + sum of all previous bets';
     renderLogTable();mmBuildLadder();mmUpdateDisplay();
   }
 
@@ -646,7 +648,7 @@
   // ── EXPORT ──────────────────────────────────────────────
   function exportCSV(){
     const log=activeLog();if(!log.length)return;
-    const header=['round','predicted','actual','result','accuracy%',...(mmEnabled?['bet','balance']:[])]
+    const header=['round','predicted','actual','result','accuracy%',...(mmEnabled?['bet','balance']:[])];
     const rows=[header.join(','),...log.map(r=>[r.round,r.pred===1?'BIG':'SMALL',r.actual===1?'BIG':'SMALL',r.hit?'Correct':'Wrong',r.acc,...(mmEnabled?[r.bet,r.balance]:[])].join(','))];
     downloadFile(rows.join('\n'),`bdg-s${activeLogTab}-${dateStr()}.csv`,'text/csv');
   }

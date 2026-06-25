@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BDG Admin Panel</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    :root{
+      --bg:#0a0e1a;--sb:#0d1424;--card:#111827;--card2:#1a2236;--border:#1e293b;
+      --text:#f1f5f9;--muted:#64748b;--big:#f97316;--small:#22d3ee;
+      --green:#22c55e;--red:#ef4444;--gold:#fbbf24;--purple:#a78bfa;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    .layout{display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{
+      width:220px;min-height:100vh;background:var(--sb);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;
+      z-index:100;transition:transform .3s;
+    }
+    .sb-logo{padding:20px;border-bottom:1px solid var(--border);}
+    .sb-logo h2{
+      font-size:1rem;font-weight:800;
+      background:linear-gradient(135deg,var(--small),var(--big));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .sb-logo p{font-size:.7rem;color:var(--muted);margin-top:2px;}
+    .sb-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:4px;}
+    .nav-item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:10px;
+      font-size:.84rem;font-weight:500;color:var(--muted);
+      text-decoration:none;transition:background .2s,color .2s;cursor:pointer;
+    }
+    .nav-item:hover{background:var(--card2);color:var(--text);}
+    .nav-item.active{background:rgba(34,211,238,.1);color:var(--small);}
+    .sb-foot{padding:16px;border-top:1px solid var(--border);}
+    .sb-email{font-size:.72rem;color:var(--muted);margin-bottom:10px;word-break:break-all;}
+    .btn-signout{
+      width:100%;padding:9px;background:transparent;
+      border:1px solid var(--border);border-radius:10px;
+      color:var(--muted);font-size:.82rem;cursor:pointer;
+      transition:border-color .2s,color .2s;font-family:inherit;
+    }
+    .btn-signout:hover{border-color:var(--red);color:var(--red);}
+
+    /* MAIN */
+    .main{margin-left:220px;flex:1;padding:24px;}
+    .topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+    .topbar h1{font-size:1.3rem;font-weight:800;}
+    .hamburger{
+      display:none;background:var(--card2);border:1px solid var(--border);
+      border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);
+      align-items:center;justify-content:center;
+    }
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+    .stat{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:18px;
+    }
+    .stat-val{font-size:2rem;font-weight:800;}
+    .stat-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+    .c-cyan{color:var(--small);} .c-green{color:var(--green);} .c-orange{color:var(--big);}
+
+    /* TABLE */
+    .sec-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+    .sec-hdr h2{font-size:.95rem;font-weight:700;}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .search{
+      background:var(--card);border:1px solid var(--border);border-radius:10px;
+      padding:8px 14px;color:var(--text);font-size:.84rem;
+      outline:none;transition:border-color .2s;font-family:inherit;width:220px;
+    }
+    .search:focus{border-color:var(--small);}
+    .search::placeholder{color:var(--muted);}
+    .btn-add{
+      background:linear-gradient(135deg,#0891b2,#22d3ee);border:none;
+      border-radius:10px;padding:9px 18px;color:#fff;
+      font-size:.84rem;font-weight:700;cursor:pointer;
+      box-shadow:0 4px 14px rgba(34,211,238,.3);white-space:nowrap;
+      transition:box-shadow .2s;font-family:inherit;
+    }
+    .btn-add:hover{box-shadow:0 6px 20px rgba(34,211,238,.5);}
+    .tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    table{width:100%;border-collapse:collapse;font-size:.84rem;}
+    th{
+      background:var(--card2);color:var(--muted);font-size:.68rem;
+      font-weight:600;text-transform:uppercase;letter-spacing:1px;
+      padding:12px 16px;text-align:left;
+    }
+    td{padding:13px 16px;border-top:1px solid var(--border);vertical-align:middle;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .empty td{text-align:center;color:var(--muted);padding:40px;}
+    .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;}
+    .badge.on{background:rgba(34,197,94,.15);color:var(--green);}
+    .badge.off{background:rgba(239,68,68,.15);color:var(--red);}
+    .acts{display:flex;gap:8px;}
+    .bsm{
+      padding:5px 11px;border-radius:8px;font-size:.74rem;font-weight:600;
+      cursor:pointer;border:1px solid;transition:opacity .2s;font-family:inherit;
+      background:transparent;
+    }
+    .bsm:hover{opacity:.75;}
+    .bsm.tog-on{border-color:var(--red);color:var(--red);}
+    .bsm.tog-off{border-color:var(--green);color:var(--green);}
+    .bsm.del{border-color:var(--red);color:var(--red);}
+
+    /* MODAL */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.7);
+      backdrop-filter:blur(4px);display:none;align-items:center;
+      justify-content:center;z-index:200;padding:16px;
+    }
+    .overlay.open{display:flex;}
+    .modal{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:20px;padding:28px;width:100%;max-width:440px;
+    }
+    .modal h3{font-size:1.05rem;font-weight:700;margin-bottom:20px;}
+    .field{margin-bottom:14px;}
+    .field label{display:block;font-size:.73rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .field input{
+      width:100%;background:var(--card2);border:1px solid var(--border);
+      border-radius:10px;padding:10px 14px;color:var(--text);
+      font-size:.88rem;outline:none;transition:border-color .2s;font-family:inherit;
+    }
+    .field input:focus{border-color:var(--small);}
+    .field input::placeholder{color:var(--muted);}
+    .m-err{
+      background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+      border-radius:10px;padding:10px 14px;font-size:.82rem;color:var(--red);
+      margin-bottom:14px;display:none;
+    }
+    .m-acts{display:flex;gap:10px;margin-top:20px;}
+    .btn-primary{
+      flex:1;padding:11px;background:linear-gradient(135deg,#0891b2,#22d3ee);
+      border:none;border-radius:10px;color:#fff;font-size:.9rem;font-weight:700;
+      cursor:pointer;font-family:inherit;
+    }
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-cancel{
+      flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);
+      border-radius:10px;color:var(--muted);font-size:.9rem;font-weight:600;
+      cursor:pointer;font-family:inherit;
+    }
+    .btn-cancel:hover{color:var(--text);}
+    .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
+
+    @media(max-width:700px){
+      .sidebar{transform:translateX(-100%);}
+      .sidebar.open{transform:translateX(0);}
+      .sb-overlay.open{display:block;}
+      .main{margin-left:0;padding:16px;}
+      .hamburger{display:flex;}
+      .stats{grid-template-columns:1fr 1fr;}
+      .stats .stat:last-child{grid-column:span 2;}
+      .search{width:100%;}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sb">
+    <div class="sb-logo">
+      <h2>BDG Predictor</h2>
+      <p>Admin Panel</p>
+    </div>
+    <nav class="sb-nav">
+      <a class="nav-item active" href="admin.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="app.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Predictor App
+      </a>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-email" id="admin-email"></div>
+      <button class="btn-signout" onclick="doSignOut()">Sign Out</button>
+    </div>
+  </aside>
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSb()"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSb()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <h1>Customer Management</h1>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-val c-cyan" id="s-total">-</div><div class="stat-lbl">Total Customers</div></div>
+      <div class="stat"><div class="stat-val c-green" id="s-active">-</div><div class="stat-lbl">Active</div></div>
+      <div class="stat"><div class="stat-val c-orange" id="s-inactive">-</div><div class="stat-lbl">Inactive</div></div>
+    </div>
+
+    <div class="sec-hdr">
+      <h2>All Customers</h2>
+      <div class="controls">
+        <input class="search" id="search" type="text" placeholder="Search name or email…" oninput="filterTable()"/>
+        <button class="btn-add" onclick="openModal()">+ Add Customer</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="tbody"><tr class="empty"><td colspan="5">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3>Add New Customer</h3>
+    <div class="m-err" id="m-err"></div>
+    <form id="add-form">
+      <div class="field"><label>Full Name</label><input type="text" id="n-name" placeholder="John Doe" required/></div>
+      <div class="field"><label>Email</label><input type="email" id="n-email" placeholder="customer@example.com" required/></div>
+      <div class="field"><label>Password</label><input type="password" id="n-pw" placeholder="Min 6 characters" required minlength="6"/></div>
+      <div class="m-acts">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="add-btn">Create Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  let allCustomers = [];
+
+  // Auth guard — must be admin
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    const snap = await db.collection('users').doc(user.uid).get();
+    if (!snap.exists || snap.data().role !== 'admin') { window.location.href = 'app.html'; return; }
+    document.getElementById('admin-email').textContent = user.email;
+    loadCustomers();
+  });
+
+  function loadCustomers() {
+    db.collection('users').where('role', '==', 'customer')
+      .onSnapshot(snap => {
+        allCustomers = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(c => !c.deleted)
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const active = allCustomers.filter(c => c.active !== false).length;
+        document.getElementById('s-total').textContent   = allCustomers.length;
+        document.getElementById('s-active').textContent  = active;
+        document.getElementById('s-inactive').textContent = allCustomers.length - active;
+        renderTable(allCustomers);
+      });
+  }
+
+  function renderTable(list) {
+    const tbody = document.getElementById('tbody');
+    if (!list.length) {
+      tbody.innerHTML = '<tr class="empty"><td colspan="5">No customers yet. Click “+ Add Customer” to create one.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(c => {
+      const isActive = c.active !== false;
+      const date = c.createdAt ? new Date(c.createdAt.seconds * 1000).toLocaleDateString() : '-';
+      return `<tr>
+        <td>${esc(c.displayName || '-')}</td>
+        <td>${esc(c.email)}</td>
+        <td><span class="badge ${isActive ? 'on' : 'off'}">${isActive ? 'Active' : 'Inactive'}</span></td>
+        <td>${date}</td>
+        <td><div class="acts">
+          <button class="bsm ${isActive ? 'tog-on' : 'tog-off'}" onclick="toggleActive('${c.id}',${isActive})">${isActive ? 'Deactivate' : 'Activate'}</button>
+          <button class="bsm del" onclick="deleteCustomer('${c.id}')">Delete</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterTable() {
+    const q = document.getElementById('search').value.toLowerCase();
+    renderTable(allCustomers.filter(c =>
+      (c.displayName || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q)
+    ));
+  }
+
+  async function toggleActive(id, currentlyActive) {
+    await db.collection('users').doc(id).update({ active: !currentlyActive });
+  }
+
+  async function deleteCustomer(id) {
+    if (!confirm('Delete this customer? They will no longer be able to sign in.')) return;
+    await db.collection('users').doc(id).update({ deleted: true });
+  }
+
+  // Create customer using secondary Firebase app instance so admin stays signed in
+  function getSecondaryApp() {
+    try { return firebase.app('secondary'); }
+    catch(e) { return firebase.initializeApp(firebase.app().options, 'secondary'); }
+  }
+
+  document.getElementById('add-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const mErr = document.getElementById('m-err');
+    mErr.style.display = 'none';
+    const addBtn = document.getElementById('add-btn');
+    addBtn.disabled = true; addBtn.textContent = 'Creating…';
+    const name  = document.getElementById('n-name').value.trim();
+    const email = document.getElementById('n-email').value.trim();
+    const pw    = document.getElementById('n-pw').value;
+    try {
+      const secApp  = getSecondaryApp();
+      const secAuth = firebase.auth(secApp);
+      const cred    = await secAuth.createUserWithEmailAndPassword(email, pw);
+      const uid     = cred.user.uid;
+      await secAuth.signOut();
+      await db.collection('users').doc(uid).set({
+        displayName: name, email, role: 'customer',
+        active: true, deleted: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      closeModal();
+      document.getElementById('add-form').reset();
+    } catch(err) {
+      mErr.textContent = err.message;
+      mErr.style.display = 'block';
+    }
+    addBtn.disabled = false; addBtn.textContent = 'Create Account';
+  });
+
+  function openModal()  { document.getElementById('modal').classList.add('open'); }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('m-err').style.display='none'; }
+  function toggleSb()   { document.getElementById('sb').classList.toggle('open'); document.getElementById('sb-overlay').classList.toggle('open'); }
+  function closeSb()    { document.getElementById('sb').classList.remove('open'); document.getElementById('sb-overlay').classList.remove('open'); }
+  function doSignOut()  { auth.signOut().then(() => window.location.href = 'index.html'); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

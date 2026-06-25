@@ -195,6 +195,23 @@
     footer{display:block;width:100%;margin:0;text-align:center;padding:14px 16px;font-size:.7rem;color:var(--text-muted);border-top:1px solid var(--border);line-height:1.6;}
     @keyframes spin-in{from{opacity:0;transform:scale(.7) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
     .anim-pop{animation:spin-in .35s cubic-bezier(.34,1.56,.64,1) both;}
+
+    /* ALTERNATING TREND ALERT */
+    .alt-alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s;}
+    .alt-alert-overlay.show{opacity:1;pointer-events:all;}
+    .alt-alert-box{background:var(--bg-card);border:1px solid rgba(251,191,36,.45);border-radius:18px;padding:28px 24px 22px;max-width:370px;width:100%;text-align:center;box-shadow:0 0 80px rgba(251,191,36,.15),0 24px 64px rgba(0,0,0,.6);transform:scale(.85);transition:transform .28s cubic-bezier(.34,1.56,.64,1);}
+    .alt-alert-overlay.show .alt-alert-box{transform:scale(1);}
+    .alt-alert-icon{font-size:2.6rem;margin-bottom:10px;line-height:1;}
+    .alt-alert-title{font-size:1.08rem;font-weight:800;color:var(--gold);margin-bottom:6px;letter-spacing:-.2px;}
+    .alt-alert-body{font-size:.78rem;color:var(--text-muted);line-height:1.65;}
+    .alt-alert-pattern{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0;}
+    .ap-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;letter-spacing:.3px;flex-shrink:0;}
+    .ap-dot.big{background:rgba(249,115,22,.2);border:2px solid var(--accent-big);color:var(--accent-big);box-shadow:0 0 8px var(--accent-glow-big);}
+    .ap-dot.small{background:rgba(34,211,238,.15);border:2px solid var(--accent-small);color:var(--accent-small);box-shadow:0 0 8px var(--accent-glow-small);}
+    .alt-alert-tip{font-size:.76rem;color:var(--gold);font-weight:700;background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.2);border-radius:9px;padding:9px 13px;margin:10px 0 18px;line-height:1.5;}
+    .btn-alt-dismiss{background:linear-gradient(135deg,#d97706,#fbbf24);color:#000;border:none;border-radius:10px;padding:11px 32px;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;transition:box-shadow .2s,transform .15s;}
+    .btn-alt-dismiss:hover{box-shadow:0 4px 22px rgba(251,191,36,.45);}
+    .btn-alt-dismiss:active{transform:scale(.96);}
   </style>
 </head>
 <body>
@@ -322,7 +339,7 @@
 
       <!-- Mini stats -->
       <div class="mm-stats-grid">
-        <div class="mm-stat-box"><div class="mm-stat-val" id="mm-disp-balance">—</div><div class="mm-stat-lbl">Balance</div></div>
+        <div class="mm-stat-box"><div class="mm-stat-val" id="mm-disp-balance">&mdash;</div><div class="mm-stat-lbl">Balance</div></div>
         <div class="mm-stat-box"><div class="mm-stat-val gold" id="mm-disp-level">L1</div><div class="mm-stat-lbl">Level</div></div>
         <div class="mm-stat-box"><div class="mm-stat-val" id="mm-disp-pnl">$0</div><div class="mm-stat-lbl">Net P&amp;L</div></div>
         <div class="mm-stat-box"><div class="mm-stat-val cyan" id="mm-disp-mult">&times;1.25</div><div class="mm-stat-lbl">Multiplier</div></div>
@@ -369,6 +386,20 @@
 
 <footer>BDG BIG/SMALL Predictor &bull; Educational ML Demo &bull; Expected accuracy ~50% &bull; Not financial advice.</footer>
 
+<!-- Alternating trend alert modal -->
+<div class="alt-alert-overlay" id="alt-alert-overlay">
+  <div class="alt-alert-box">
+    <div class="alt-alert-icon">&#9888;&#65039;</div>
+    <div class="alt-alert-title">Alternating Trend Detected!</div>
+    <div class="alt-alert-body">The last 4 results form a perfect alternating pattern:</div>
+    <div class="alt-alert-pattern" id="alt-alert-pattern"></div>
+    <div class="alt-alert-tip" id="alt-alert-tip"></div>
+    <div class="alt-alert-body" style="font-size:.72rem;margin-top:-4px;">These patterns often reverse unexpectedly. Strategy 2 will predict accordingly &mdash; stay cautious with your bets.</div>
+    <br/>
+    <button class="btn-alt-dismiss" onclick="dismissAltAlert()">Got it</button>
+  </div>
+</div>
+
 <script>
   const gate = document.getElementById('auth-gate');
   auth.onAuthStateChanged(user => {
@@ -386,7 +417,7 @@
   });
   function doLogout() { auth.signOut().then(() => window.location.href = 'index.html'); }
 
-  // ── PREDICTOR ────────────────────────────────────────────────────────────
+  // ── PREDICTOR ──────────────────────────────────────────────
   const WINDOW_SIZE=5, INITIAL_HISTORY=500;
   function seededRng(seed){let s=seed>>>0;return()=>{s=Math.imul(s,1664525)+1013904223>>>0;return s/0x100000000;};}
   const rng0=seededRng(42);
@@ -397,7 +428,7 @@
 
   const STRATEGY_INFO=[
     'Analyzes the pattern of recent results against historical data to predict the next outcome using frequency-based ML.',
-    'When the previous prediction was wrong, flips to the opposite outcome for the next round. Falls back to Pattern ML otherwise.'
+    'When the previous prediction was wrong, flips to the opposite outcome for the next round. Falls back to Pattern ML otherwise. Alerts you when an alternating BIG/SMALL trend is detected.'
   ];
   const STRATEGY_NAMES=['Strategy 1 — Pattern ML','Strategy 2 — Reverse on Wrong'];
 
@@ -454,7 +485,7 @@
     flashTimer=setTimeout(()=>{el.textContent='';el.className='result-flash';},2200);
   }
 
-  // ── LOG TABS ─────────────────────────────────────────────────────────────
+  // ── LOG TABS ─────────────────────────────────────────────
   function switchLogTab(n){activeLogTab=n;document.getElementById('log-tab-1').classList.toggle('active',n===1);document.getElementById('log-tab-2').classList.toggle('active',n===2);renderLogTable();updateExportBtns();}
   function activeLog(){return activeLogTab===1?roundLog1:roundLog2;}
   function colCount(){return mmEnabled?7:5;}
@@ -475,7 +506,34 @@
   }
   function updateExportBtns(){const has=activeLog().length>0;document.getElementById('btn-csv').disabled=!has;document.getElementById('btn-json').disabled=!has;}
 
-  // ── SUBMIT ───────────────────────────────────────────────────────────────
+  // ── ALTERNATING PATTERN ALERT (Strategy 2) ───────────────────────
+  function checkAlternatingPattern(){
+    if(strategy!==2)return;
+    const last4=history.slice(-4);
+    if(last4.length<4)return;
+    // Alternating = every consecutive pair is different: B,S,B,S or S,B,S,B
+    const isAlt=last4.every((v,i)=>i===0||v!==last4[i-1]);
+    if(!isAlt)return;
+    // Build dot display
+    const patEl=document.getElementById('alt-alert-pattern');
+    patEl.innerHTML='';
+    last4.forEach(v=>{
+      const d=document.createElement('div');
+      d.className='ap-dot '+(v===1?'big':'small');
+      d.textContent=v===1?'BIG':'SMALL';
+      patEl.appendChild(d);
+    });
+    // Tip
+    const nextExpected=last4[3]===1?'SMALL':'BIG';
+    document.getElementById('alt-alert-tip').textContent=
+      'Next could be '+nextExpected+' if pattern continues. Strategy 2 will predict accordingly.';
+    document.getElementById('alt-alert-overlay').classList.add('show');
+  }
+  function dismissAltAlert(){
+    document.getElementById('alt-alert-overlay').classList.remove('show');
+  }
+
+  // ── SUBMIT ──────────────────────────────────────────────
   function submitResult(actual){
     roundNum++;total++;if(actual===1)bigCount++;else smallCount++;
     const hit=actual===currentPred.prediction;if(hit)correct++;
@@ -490,6 +548,7 @@
     if(activeLogTab===strategy)renderLogTable();
     updateExportBtns();
     showFlash(hit);history.push(actual);
+    checkAlternatingPattern();
     currentPred=getNextPred();updatePredDisplay(currentPred);updateDots(history.slice(-5));updateStats();
   }
   function autoRound(){submitResult(Math.random()>.5?1:0);}
@@ -503,15 +562,13 @@
     if(mmEnabled){mmLevel=1;mmUpdateDisplay();}
   }
 
-  // ── MONEY MANAGEMENT ─────────────────────────────────────────────────────
+  // ── MONEY MANAGEMENT ─────────────────────────────────────────
   const MM_LEVELS=10;
   let mmEnabled=false,mmBalance=0,mmInitBalance=0,mmStartBet=0,mmMult=1,mmLevel=1;
-  let mmBets=[]; // pre-computed bet for each level
+  let mmBets=[];
 
-  // ─ Core formula:
   // L1 = startBet
   // LN = L(N-1) × mult + sum(L1 … L(N-1))
-  // Each level covers all previous losses when won.
   function computeMMBets(startBet,mult,levels){
     const bets=[startBet];
     for(let i=1;i<levels;i++){
@@ -538,7 +595,6 @@
     const chip=document.getElementById('mm-status-chip');
     chip.textContent='Active';chip.classList.add('active');
     document.getElementById('mm-live').style.display='block';
-    // Show formula hint
     document.getElementById('mm-formula-hint').innerHTML=
       `<strong>Formula:</strong> L1 = $${fmtNum(bet)} &nbsp;│&nbsp; L2 = L1 × ${mul} + L1 &nbsp;│&nbsp; LN = L(N-1) × ${mul} + sum of all previous bets`;
     renderLogTable();mmBuildLadder();mmUpdateDisplay();
@@ -587,10 +643,10 @@
 
   function fmtNum(n){const r=Math.round(n*100)/100;return r%1===0?r.toLocaleString():r.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-  // ── EXPORT ───────────────────────────────────────────────────────────────
+  // ── EXPORT ──────────────────────────────────────────────
   function exportCSV(){
     const log=activeLog();if(!log.length)return;
-    const header=['round','predicted','actual','result','accuracy%',...(mmEnabled?['bet','balance']:[])];
+    const header=['round','predicted','actual','result','accuracy%',...(mmEnabled?['bet','balance']:[])]
     const rows=[header.join(','),...log.map(r=>[r.round,r.pred===1?'BIG':'SMALL',r.actual===1?'BIG':'SMALL',r.hit?'Correct':'Wrong',r.acc,...(mmEnabled?[r.bet,r.balance]:[])].join(','))];
     downloadFile(rows.join('\n'),`bdg-s${activeLogTab}-${dateStr()}.csv`,'text/csv');
   }
@@ -603,7 +659,7 @@
   function downloadFile(content,filename,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
   function dateStr(){return new Date().toISOString().slice(0,10);}
 
-  // ── INIT ────────────────────────────────────────────────────────────────
+  // ── INIT ───────────────────────────────────────────────
   currentPred=getNextPred();updatePredDisplay(currentPred);updateDots(history.slice(-5));updateStats();
 </script>
 </body>

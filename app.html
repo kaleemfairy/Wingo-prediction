@@ -25,8 +25,6 @@
         radial-gradient(ellipse 80% 50% at 50% -10%,rgba(34,211,238,.08),transparent),
         radial-gradient(ellipse 60% 40% at 80% 110%,rgba(249,115,22,.06),transparent);
     }
-
-    /* ─ AUTH GATE */
     #auth-gate{position:fixed;inset:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:9999;}
     #auth-gate p{color:var(--text-muted);font-size:.9rem;}
     #deactivated-banner{
@@ -34,15 +32,9 @@
       background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.3);
       padding:12px 16px;text-align:center;color:var(--red);font-size:.85rem;font-weight:500;
     }
-
-    /* ─ HEADER */
     header{display:block;width:100%;margin:0;background:var(--bg-primary);border-bottom:1px solid var(--border);padding:14px 16px;}
     .hdr-inner{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-    .hdr-title h1{
-      font-size:clamp(1rem,4vw,1.6rem);font-weight:800;
-      background:linear-gradient(135deg,var(--accent-small) 0%,#a78bfa 50%,var(--accent-big) 100%);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    }
+    .hdr-title h1{font-size:clamp(1rem,4vw,1.6rem);font-weight:800;background:linear-gradient(135deg,var(--accent-small) 0%,#a78bfa 50%,var(--accent-big) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
     .hdr-title p{color:var(--text-muted);font-size:.72rem;margin-top:2px;}
     .hdr-user{display:flex;align-items:center;gap:8px;flex-shrink:0;}
     .user-email{font-size:.72rem;color:var(--text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -50,8 +42,6 @@
     .btn-logout:hover{border-color:var(--red);color:var(--red);}
     .round-badge{display:inline-block;margin-top:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:999px;padding:3px 14px;font-size:.72rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
     .round-badge span{color:var(--gold);font-weight:700;}
-
-    /* ─ MAIN GRID */
     main{max-width:960px;margin:0 auto;padding:16px 12px 40px;display:grid;gap:14px;grid-template-columns:1fr;}
     @media(min-width:680px){
       main{grid-template-columns:1fr 1fr;padding:20px 16px 48px;gap:20px;
@@ -60,29 +50,21 @@
       .card-history{grid-area:history;}.card-stats{grid-area:stats;}
       .card-controls{grid-area:controls;}.card-money{grid-area:money;}.card-log{grid-area:log;}
     }
-
-    /* ─ CARDS */
     .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;}
     @media(min-width:680px){.card{padding:22px;border-radius:16px;}}
     .card-title{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
     .card-title svg{flex-shrink:0;}
-
-    /* ─ EXPORT BUTTONS */
     .log-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
     .export-btns{display:flex;gap:6px;}
     .btn-export{display:flex;align-items:center;gap:4px;background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 10px;color:var(--text-muted);font-size:.68rem;font-weight:600;cursor:pointer;transition:border-color .2s,color .2s;font-family:inherit;white-space:nowrap;}
     .btn-export:hover:not(:disabled){border-color:var(--green);color:var(--green);}
     .btn-export:disabled{opacity:.35;cursor:not-allowed;}
-
-    /* ─ STRATEGY CARD */
     .strategy-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
     .btn-strategy{flex:1;min-width:130px;background:var(--bg-card2);border:2px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text-muted);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center;line-height:1.4;}
     .btn-strategy .s-num{display:block;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;opacity:.7;}
     .btn-strategy:hover:not(.active){border-color:#4f46e5;color:#a78bfa;}
     .btn-strategy.active{background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(167,139,250,.15));border-color:#7c3aed;color:#c4b5fd;box-shadow:0 0 20px rgba(124,58,237,.2);}
     .strategy-desc{font-size:.75rem;color:var(--text-muted);line-height:1.6;background:var(--bg-card2);border-radius:10px;padding:9px 13px;border-left:3px solid #7c3aed;}
-
-    /* ─ PREDICT CARD */
     .card-predict{text-align:center;padding:24px 16px;}
     @media(min-width:680px){.card-predict{padding:32px 22px;}}
     .pred-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;}
@@ -105,8 +87,6 @@
     .bar-fill.big{background:linear-gradient(90deg,#ea580c,#f97316);}
     .bar-fill.small{background:linear-gradient(90deg,#0891b2,#22d3ee);}
     .prob-pct{width:36px;font-weight:700;font-size:.8rem;flex-shrink:0;}
-
-    /* ─ HISTORY DOTS */
     .result-dots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
     .dot{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;letter-spacing:.5px;transition:all .3s;border:2px solid transparent;flex-shrink:0;}
     @media(max-width:380px){.dot{width:42px;height:42px;font-size:.55rem;}}
@@ -114,8 +94,6 @@
     .dot.big{background:rgba(249,115,22,.18);border-color:var(--accent-big);color:var(--accent-big);box-shadow:0 0 10px var(--accent-glow-big);}
     .dot.small{background:rgba(34,211,238,.15);border-color:var(--accent-small);color:var(--accent-small);box-shadow:0 0 10px var(--accent-glow-small);}
     .dot.empty{background:var(--bg-card2);border-color:var(--border);color:var(--text-muted);}
-
-    /* ─ LIVE STATS */
     .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .stat-box{background:var(--bg-card2);border-radius:12px;padding:12px 10px;text-align:center;}
     .stat-val{font-size:1.5rem;font-weight:800;line-height:1.1;}
@@ -125,8 +103,6 @@
     .accuracy-bar-track{width:100%;height:7px;background:var(--border);border-radius:999px;overflow:hidden;margin-top:5px;}
     .accuracy-bar-fill{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);border-radius:999px;transition:width .6s cubic-bezier(.4,0,.2,1);}
     .accuracy-pct-label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-muted);margin-top:3px;}
-
-    /* ─ CONTROLS */
     .card-controls .inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;}
     .btn{border:none;cursor:pointer;font-weight:700;font-size:.88rem;border-radius:11px;padding:12px 22px;transition:transform .15s,box-shadow .2s,opacity .2s;letter-spacing:.3px;font-family:inherit;}
     @media(max-width:380px){.btn{padding:11px 16px;font-size:.82rem;}}
@@ -143,15 +119,12 @@
     .result-flash{width:100%;text-align:center;font-size:.95rem;font-weight:700;min-height:26px;transition:opacity .3s;}
     .result-flash.correct{color:var(--green);}.result-flash.wrong{color:var(--red);}
 
-    /* ── MONEY MANAGEMENT ────────────────────────────────────────── */
+    /* MONEY MANAGEMENT */
     .mm-title-row{display:flex;align-items:center;gap:8px;width:100%;min-width:0;}
     .mm-status-chip{margin-left:auto;flex-shrink:0;background:var(--bg-card2);border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:.62rem;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;}
     .mm-status-chip.active{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--green);}
-
-    /* form */
     .mm-form-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;}
     .mm-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;}
-    /* Mobile: 2 fields per row, button full-width */
     @media(max-width:560px){
       .mm-field{min-width:calc(50% - 4px);flex:none;width:calc(50% - 4px);}
       .mm-field:last-of-type{width:100%;}
@@ -166,46 +139,51 @@
     .btn-mm-apply{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none;border-radius:9px;padding:0 18px;height:40px;font-weight:700;font-size:.82rem;cursor:pointer;font-family:inherit;transition:box-shadow .2s;white-space:nowrap;flex-shrink:0;align-self:flex-end;}
     .btn-mm-apply:hover{box-shadow:0 4px 16px rgba(34,197,94,.4);}
     .mm-error{display:none;margin-top:6px;color:var(--red);font-size:.72rem;font-weight:600;}
-
-    /* live */
     .mm-divider{height:1px;background:var(--border);margin:14px 0;}
+
+    /* formula hint */
+    .mm-formula{
+      font-size:.72rem;color:var(--text-muted);background:var(--bg-card2);
+      border-radius:8px;padding:8px 12px;margin-bottom:14px;line-height:1.6;
+      border-left:3px solid var(--gold);
+    }
+    .mm-formula strong{color:var(--gold);}
+
     .mm-bet-callout{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:11px;padding:12px 16px;margin-bottom:14px;}
     .mm-bet-left{display:flex;flex-direction:column;gap:2px;}
     .mm-bet-label{font-size:.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);opacity:.8;}
     .mm-bet-amount{font-size:1.7rem;font-weight:900;color:var(--gold);line-height:1;}
     .mm-bet-right{font-size:.72rem;color:var(--text-muted);text-align:right;line-height:1.6;}
-
     .mm-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
     @media(max-width:520px){.mm-stats-grid{grid-template-columns:1fr 1fr;}}
     .mm-stat-box{background:var(--bg-card2);border-radius:10px;padding:10px 8px;text-align:center;}
     .mm-stat-val{font-size:1rem;font-weight:800;line-height:1.2;color:var(--text-primary);word-break:break-all;}
     .mm-stat-val.green{color:var(--green);}.mm-stat-val.red{color:var(--red);}.mm-stat-val.gold{color:var(--gold);}.mm-stat-val.cyan{color:var(--accent-small);}
     .mm-stat-lbl{font-size:.58rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
-
     .mm-ladder-title{font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
     .mm-ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
     .mm-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:7px 2px;text-align:center;transition:all .25s;min-width:0;}
     .mm-chip-num{font-size:.52rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
-    .mm-chip-bet{font-size:.7rem;font-weight:800;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px;}
+    .mm-chip-bet{font-size:.68rem;font-weight:800;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px;}
     .mm-chip.lost{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);}
     .mm-chip.lost .mm-chip-num,.mm-chip.lost .mm-chip-bet{color:rgba(239,68,68,.5);}
     .mm-chip.current{background:rgba(251,191,36,.1);border-color:var(--gold);box-shadow:0 0 14px rgba(251,191,36,.2);}
     .mm-chip.current .mm-chip-num{color:var(--gold);}
-    .mm-chip.current .mm-chip-bet{color:var(--gold);font-size:.78rem;}
+    .mm-chip.current .mm-chip-bet{color:var(--gold);font-size:.76rem;}
     .mm-chip.future{opacity:.38;}
     .mm-warning{display:none;margin-top:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:10px 14px;color:var(--red);font-size:.75rem;font-weight:600;text-align:center;}
     .mm-reset-row{display:flex;justify-content:flex-end;margin-top:12px;}
     .btn-mm-reset{background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 13px;color:var(--text-muted);font-size:.7rem;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s,color .2s;}
     .btn-mm-reset:hover{border-color:var(--red);color:var(--red);}
 
-    /* ── ROUND HISTORY ─────────────────────────────────────────── */
+    /* LOG */
     .log-tab-row{display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
     .log-tab{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text-muted);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap;}
     .log-tab.active{background:rgba(124,58,237,.15);border-color:#7c3aed;color:#c4b5fd;}
     .log-tab:hover:not(.active){border-color:#4f46e5;color:#a78bfa;}
     .log-count{font-size:.68rem;color:var(--text-muted);margin-left:auto;white-space:nowrap;}
     .log-table-wrap{overflow-x:auto;border-radius:9px;border:1px solid var(--border);-webkit-overflow-scrolling:touch;}
-    table{width:100%;border-collapse:collapse;font-size:.78rem;min-width:320px;}
+    table{width:100%;border-collapse:collapse;font-size:.78rem;min-width:300px;}
     th{background:var(--bg-card2);color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;font-size:.62rem;padding:9px 10px;text-align:center;white-space:nowrap;}
     td{padding:8px 10px;text-align:center;border-top:1px solid var(--border);}
     tr:hover td{background:rgba(255,255,255,.02);}
@@ -214,10 +192,7 @@
     .tag.small{background:rgba(34,211,238,.12);color:var(--accent-small);}
     .tag.correct{background:rgba(34,197,94,.15);color:var(--green);}
     .tag.wrong{background:rgba(239,68,68,.15);color:var(--red);}
-
-    /* ─ FOOTER */
     footer{display:block;width:100%;margin:0;text-align:center;padding:14px 16px;font-size:.7rem;color:var(--text-muted);border-top:1px solid var(--border);line-height:1.6;}
-
     @keyframes spin-in{from{opacity:0;transform:scale(.7) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
     .anim-pop{animation:spin-in .35s cubic-bezier(.34,1.56,.64,1) both;}
   </style>
@@ -250,12 +225,8 @@
       Prediction Strategy
     </div>
     <div class="strategy-row">
-      <button class="btn-strategy active" id="btn-s1" onclick="switchStrategy(1)">
-        <span class="s-num">Strategy 1</span>Pattern ML
-      </button>
-      <button class="btn-strategy" id="btn-s2" onclick="switchStrategy(2)">
-        <span class="s-num">Strategy 2</span>Reverse on Wrong
-      </button>
+      <button class="btn-strategy active" id="btn-s1" onclick="switchStrategy(1)"><span class="s-num">Strategy 1</span>Pattern ML</button>
+      <button class="btn-strategy" id="btn-s2" onclick="switchStrategy(2)"><span class="s-num">Strategy 2</span>Reverse on Wrong</button>
     </div>
     <div class="strategy-desc" id="strategy-desc">Analyzes the pattern of recent results against historical data to predict the next outcome using frequency-based ML.</div>
   </div>
@@ -271,7 +242,7 @@
     </div>
   </div>
 
-  <!-- Last 5 Results -->
+  <!-- Last 5 -->
   <div class="card card-history">
     <div class="card-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Last 5 Results</div>
     <div class="result-dots" id="result-dots">
@@ -279,7 +250,7 @@
     </div>
   </div>
 
-  <!-- Live Stats -->
+  <!-- Stats -->
   <div class="card card-stats">
     <div class="card-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="12" x2="8" y2="17"/><line x1="12" y1="8" x2="12" y2="17"/><line x1="16" y1="14" x2="16" y2="17"/></svg>Live Stats</div>
     <div class="stats-grid">
@@ -333,8 +304,14 @@
       <button class="btn-mm-apply" onclick="mmApply()">Apply</button>
     </div>
     <div class="mm-error" id="mm-error"></div>
+
     <div id="mm-live" style="display:none">
       <div class="mm-divider"></div>
+
+      <!-- Formula reminder -->
+      <div class="mm-formula" id="mm-formula-hint"></div>
+
+      <!-- Current bet callout -->
       <div class="mm-bet-callout">
         <div class="mm-bet-left">
           <div class="mm-bet-label">Recommended Bet</div>
@@ -342,20 +319,24 @@
         </div>
         <div class="mm-bet-right" id="mm-bet-hint">Level 1 of 10</div>
       </div>
+
+      <!-- Mini stats -->
       <div class="mm-stats-grid">
         <div class="mm-stat-box"><div class="mm-stat-val" id="mm-disp-balance">—</div><div class="mm-stat-lbl">Balance</div></div>
         <div class="mm-stat-box"><div class="mm-stat-val gold" id="mm-disp-level">L1</div><div class="mm-stat-lbl">Level</div></div>
         <div class="mm-stat-box"><div class="mm-stat-val" id="mm-disp-pnl">$0</div><div class="mm-stat-lbl">Net P&amp;L</div></div>
         <div class="mm-stat-box"><div class="mm-stat-val cyan" id="mm-disp-mult">&times;1.25</div><div class="mm-stat-lbl">Multiplier</div></div>
       </div>
-      <div class="mm-ladder-title">Level Progression &mdash; advances on loss, resets on win</div>
+
+      <!-- Level ladder -->
+      <div class="mm-ladder-title">Level Progression &mdash; loss advances level, win resets to L1</div>
       <div class="mm-ladder" id="mm-ladder"></div>
       <div class="mm-warning" id="mm-warning">&#9888; Maximum level 10 reached! Proceed with extreme caution.</div>
       <div class="mm-reset-row"><button class="btn-mm-reset" onclick="mmResetBalance()">Reset Balance &amp; Level</button></div>
     </div>
   </div>
 
-  <!-- Round History with per-strategy tabs -->
+  <!-- Round History -->
   <div class="card card-log">
     <div class="log-title-row">
       <div class="card-title" style="margin-bottom:0">
@@ -371,7 +352,6 @@
         </button>
       </div>
     </div>
-    <!-- Strategy tabs -->
     <div class="log-tab-row">
       <button class="log-tab active" id="log-tab-1" onclick="switchLogTab(1)">Strategy 1</button>
       <button class="log-tab" id="log-tab-2" onclick="switchLogTab(2)">Strategy 2</button>
@@ -391,7 +371,6 @@
 
 <script>
   const gate = document.getElementById('auth-gate');
-
   auth.onAuthStateChanged(user => {
     if (!user) { window.location.href = 'index.html'; return; }
     document.getElementById('user-email').textContent = user.email;
@@ -405,85 +384,60 @@
       gate.style.display = 'none';
     });
   });
-
   function doLogout() { auth.signOut().then(() => window.location.href = 'index.html'); }
 
-  // ── PREDICTOR STATE ─────────────────────────────────────────────────────────
-  const WINDOW_SIZE = 5, INITIAL_HISTORY = 500;
-  function seededRng(seed) {
-    let s = seed >>> 0;
-    return () => { s = Math.imul(s,1664525)+1013904223>>>0; return s/0x100000000; };
-  }
-  const rng0 = seededRng(42);
-  let history = Array.from({length:INITIAL_HISTORY}, () => rng0()>.5?1:0);
-  let roundNum=0, correct=0, total=0, bigCount=0, smallCount=0, flashTimer=null, currentPred=null;
+  // ── PREDICTOR ────────────────────────────────────────────────────────────
+  const WINDOW_SIZE=5, INITIAL_HISTORY=500;
+  function seededRng(seed){let s=seed>>>0;return()=>{s=Math.imul(s,1664525)+1013904223>>>0;return s/0x100000000;};}
+  const rng0=seededRng(42);
+  let history=Array.from({length:INITIAL_HISTORY},()=>rng0()>.5?1:0);
+  let roundNum=0,correct=0,total=0,bigCount=0,smallCount=0,flashTimer=null,currentPred=null;
+  let strategy=1,lastPredValue=null,lastHit=null;
+  let roundLog1=[],roundLog2=[],activeLogTab=1;
 
-  // Strategy
-  let strategy=1, lastPredValue=null, lastHit=null;
-  const STRATEGY_INFO = [
+  const STRATEGY_INFO=[
     'Analyzes the pattern of recent results against historical data to predict the next outcome using frequency-based ML.',
     'When the previous prediction was wrong, flips to the opposite outcome for the next round. Falls back to Pattern ML otherwise.'
   ];
-  const STRATEGY_NAMES = ['Strategy 1 — Pattern ML', 'Strategy 2 — Reverse on Wrong'];
+  const STRATEGY_NAMES=['Strategy 1 — Pattern ML','Strategy 2 — Reverse on Wrong'];
 
-  // Separate logs per strategy
-  let roundLog1 = [], roundLog2 = [];
-  let activeLogTab = 1;
-
-  // ── PREDICTION LOGIC ─────────────────────────────────────────────────────
-  function predict(seq) {
-    const win=seq.slice(-WINDOW_SIZE), key=win.join(',');
-    let bigAfter=0, matches=0;
-    for(let i=WINDOW_SIZE;i<history.length;i++){
-      const w=history.slice(i-WINDOW_SIZE,i).join(',');
-      if(w===key){matches++;if(history[i]===1)bigAfter++;}
-    }
+  function predict(seq){
+    const win=seq.slice(-WINDOW_SIZE),key=win.join(',');
+    let bigAfter=0,matches=0;
+    for(let i=WINDOW_SIZE;i<history.length;i++){const w=history.slice(i-WINDOW_SIZE,i).join(',');if(w===key){matches++;if(history[i]===1)bigAfter++;}}
     let bigProb=matches<3?history.filter(x=>x===1).length/history.length:bigAfter/matches;
     const alpha=Math.min(matches,20)/20;
     bigProb=bigProb*alpha+.5*(1-alpha);
     const bigP=Math.round(bigProb*100);
     return{prediction:bigP>=50?1:0,bigProb:bigP,smallProb:100-bigP};
   }
-  function getNextPred() {
-    if(strategy===1) return predict(history);
-    if(lastPredValue!==null && lastHit===false){
-      const opp=lastPredValue===1?0:1;
-      return{prediction:opp,bigProb:opp===1?68:32,smallProb:opp===1?32:68};
-    }
+  function getNextPred(){
+    if(strategy===1)return predict(history);
+    if(lastPredValue!==null&&lastHit===false){const opp=lastPredValue===1?0:1;return{prediction:opp,bigProb:opp===1?68:32,smallProb:opp===1?32:68};}
     return predict(history);
   }
-  function switchStrategy(n) {
+  function switchStrategy(n){
     strategy=n;
     document.getElementById('btn-s1').classList.toggle('active',n===1);
     document.getElementById('btn-s2').classList.toggle('active',n===2);
     document.getElementById('strategy-desc').textContent=STRATEGY_INFO[n-1];
     document.getElementById('active-strategy-badge').textContent=STRATEGY_NAMES[n-1];
-    currentPred=getNextPred();
-    updatePredDisplay(currentPred);
+    currentPred=getNextPred();updatePredDisplay(currentPred);
   }
-
-  // ── DISPLAY HELPERS ──────────────────────────────────────────────────────
-  function updatePredDisplay(pred) {
-    const el=document.getElementById('pred-value'), ring=document.getElementById('pred-ring');
-    const cls=pred.prediction===1?'big':'small';
+  function updatePredDisplay(pred){
+    const el=document.getElementById('pred-value'),ring=document.getElementById('pred-ring'),cls=pred.prediction===1?'big':'small';
     el.textContent=pred.prediction===1?'BIG':'SMALL';
-    el.className='pred-value anim-pop '+cls;
-    ring.className='pred-ring '+cls;
+    el.className='pred-value anim-pop '+cls;ring.className='pred-ring '+cls;
     document.getElementById('bar-big').style.width=pred.bigProb+'%';
     document.getElementById('bar-small').style.width=pred.smallProb+'%';
     document.getElementById('pct-big').textContent=pred.bigProb+'%';
     document.getElementById('pct-small').textContent=pred.smallProb+'%';
   }
-  function updateDots(last5) {
-    const c=document.getElementById('result-dots'); c.innerHTML='';
-    last5.forEach(v=>{
-      const d=document.createElement('div');
-      d.className='dot '+(v===1?'big':'small');
-      d.textContent=v===1?'BIG':'SMALL';
-      c.appendChild(d);
-    });
+  function updateDots(last5){
+    const c=document.getElementById('result-dots');c.innerHTML='';
+    last5.forEach(v=>{const d=document.createElement('div');d.className='dot '+(v===1?'big':'small');d.textContent=v===1?'BIG':'SMALL';c.appendChild(d);});
   }
-  function updateStats() {
+  function updateStats(){
     document.getElementById('hdr-round').textContent=roundNum;
     document.getElementById('stat-total').textContent=total;
     document.getElementById('stat-correct').textContent=correct;
@@ -492,7 +446,7 @@
     if(total>0){const acc=Math.round(correct/total*100);document.getElementById('stat-acc').textContent=acc+'% ('+correct+'/'+total+')';document.getElementById('acc-bar').style.width=acc+'%';}
     else{document.getElementById('stat-acc').textContent='-';document.getElementById('acc-bar').style.width='0%';}
   }
-  function showFlash(hit) {
+  function showFlash(hit){
     const el=document.getElementById('flash');
     el.textContent=hit?'✓ Correct!':'✗ Wrong';
     el.className='result-flash '+(hit?'correct':'wrong');
@@ -500,109 +454,74 @@
     flashTimer=setTimeout(()=>{el.textContent='';el.className='result-flash';},2200);
   }
 
-  // ── ROUND LOG TABS ───────────────────────────────────────────────────────
-  function switchLogTab(n) {
-    activeLogTab=n;
-    document.getElementById('log-tab-1').classList.toggle('active',n===1);
-    document.getElementById('log-tab-2').classList.toggle('active',n===2);
-    renderLogTable();
-    updateExportBtns();
-  }
-
-  function activeLog() { return activeLogTab===1?roundLog1:roundLog2; }
-
-  function colCount() { return mmEnabled?7:5; }
-
-  function renderLogTable() {
-    const log=activeLog();
-    const body=document.getElementById('log-body');
-    const head=document.getElementById('log-head');
-    const cols=colCount();
-
-    // Update header
-    if(mmEnabled){
-      head.innerHTML='<tr><th>Round</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Acc%</th><th>Bet</th><th>Balance</th></tr>';
-    } else {
-      head.innerHTML='<tr><th>Round</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Acc%</th></tr>';
-    }
-
+  // ── LOG TABS ─────────────────────────────────────────────────────────────
+  function switchLogTab(n){activeLogTab=n;document.getElementById('log-tab-1').classList.toggle('active',n===1);document.getElementById('log-tab-2').classList.toggle('active',n===2);renderLogTable();updateExportBtns();}
+  function activeLog(){return activeLogTab===1?roundLog1:roundLog2;}
+  function colCount(){return mmEnabled?7:5;}
+  function renderLogTable(){
+    const log=activeLog(),body=document.getElementById('log-body'),head=document.getElementById('log-head'),cols=colCount();
+    head.innerHTML=mmEnabled
+      ?'<tr><th>Round</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Acc%</th><th>Bet</th><th>Balance</th></tr>'
+      :'<tr><th>Round</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Acc%</th></tr>';
     document.getElementById('log-count').textContent=log.length+' round'+(log.length!==1?'s':'');
-
-    if(!log.length){
-      body.innerHTML=`<tr><td colspan="${cols}" style="color:var(--text-muted);padding:18px 10px;">No rounds yet for Strategy ${activeLogTab} — switch to that strategy and enter results.</td></tr>`;
-      return;
-    }
-
+    if(!log.length){body.innerHTML=`<tr><td colspan="${cols}" style="color:var(--text-muted);padding:18px 10px;">No rounds yet for Strategy ${activeLogTab} — switch to that strategy and enter results.</td></tr>`;return;}
     body.innerHTML='';
-    // Show latest 100, newest first
-    const visible=log.slice(-100).reverse();
-    visible.forEach(r=>{
+    log.slice(-100).reverse().forEach(r=>{
       const tr=document.createElement('tr');
       const betCells=mmEnabled?`<td style="color:var(--gold);font-weight:700;">${r.bet}</td><td style="font-size:.72rem;">${r.balance}</td>`:'';
-      tr.innerHTML=`<td style="font-size:.75rem;color:var(--text-muted);">#${r.round}</td><td><span class="tag ${r.pred===1?'big':'small'}">${r.pred===1?'BIG':'SMALL'}</span></td><td><span class="tag ${r.actual===1?'big':'small'}">${r.actual===1?'BIG':'SMALL'}</span></td><td><span class="tag ${r.hit?'correct':'wrong'}">${r.hit?'Correct':'Wrong'}</span></td><td>${r.acc}%</td>${betCells}`;
+      tr.innerHTML=`<td style="font-size:.72rem;color:var(--text-muted);">#${r.round}</td><td><span class="tag ${r.pred===1?'big':'small'}">${r.pred===1?'BIG':'SMALL'}</span></td><td><span class="tag ${r.actual===1?'big':'small'}">${r.actual===1?'BIG':'SMALL'}</span></td><td><span class="tag ${r.hit?'correct':'wrong'}">${r.hit?'Correct':'Wrong'}</span></td><td>${r.acc}%</td>${betCells}`;
       body.appendChild(tr);
     });
   }
+  function updateExportBtns(){const has=activeLog().length>0;document.getElementById('btn-csv').disabled=!has;document.getElementById('btn-json').disabled=!has;}
 
-  function updateExportBtns() {
-    const hasData=activeLog().length>0;
-    document.getElementById('btn-csv').disabled=!hasData;
-    document.getElementById('btn-json').disabled=!hasData;
-  }
-
-  // ── SUBMIT RESULT ────────────────────────────────────────────────────────
-  function submitResult(actual) {
-    roundNum++; total++;
-    if(actual===1)bigCount++;else smallCount++;
-    const hit=actual===currentPred.prediction;
-    if(hit)correct++;
-    lastPredValue=currentPred.prediction;
-    lastHit=hit;
+  // ── SUBMIT ───────────────────────────────────────────────────────────────
+  function submitResult(actual){
+    roundNum++;total++;if(actual===1)bigCount++;else smallCount++;
+    const hit=actual===currentPred.prediction;if(hit)correct++;
+    lastPredValue=currentPred.prediction;lastHit=hit;
     const acc=Math.round(correct/total*100);
     const betUsed=mmEnabled?mmCurrentBet():0;
     mmOnResult(hit);
     const balAfter=mmEnabled?mmBalance:0;
-
-    // Push to the correct strategy log
     const entry={round:roundNum,pred:currentPred.prediction,actual,hit,acc};
     if(mmEnabled){entry.bet='$'+fmtNum(betUsed);entry.balance='$'+fmtNum(balAfter);}
-    if(strategy===1)roundLog1.push(entry);
-    else roundLog2.push(entry);
-
-    // Refresh table if the active tab matches current strategy
+    if(strategy===1)roundLog1.push(entry);else roundLog2.push(entry);
     if(activeLogTab===strategy)renderLogTable();
     updateExportBtns();
-    showFlash(hit);
-    history.push(actual);
-    currentPred=getNextPred();
-    updatePredDisplay(currentPred);
-    updateDots(history.slice(-5));
-    updateStats();
+    showFlash(hit);history.push(actual);
+    currentPred=getNextPred();updatePredDisplay(currentPred);updateDots(history.slice(-5));updateStats();
   }
-
   function autoRound(){submitResult(Math.random()>.5?1:0);}
-
   function resetAll(){
     const rng2=seededRng(Date.now());
     history=Array.from({length:INITIAL_HISTORY},()=>rng2()>.5?1:0);
-    roundNum=0;correct=0;total=0;bigCount=0;smallCount=0;
-    lastPredValue=null;lastHit=null;
-    roundLog1=[];roundLog2=[];
-    renderLogTable();
-    updateExportBtns();
-    currentPred=getNextPred();
-    updatePredDisplay(currentPred);
-    updateDots(history.slice(-5));
-    const f=document.getElementById('flash');f.textContent='';f.className='result-flash';
-    updateStats();
+    roundNum=0;correct=0;total=0;bigCount=0;smallCount=0;lastPredValue=null;lastHit=null;
+    roundLog1=[];roundLog2=[];renderLogTable();updateExportBtns();
+    currentPred=getNextPred();updatePredDisplay(currentPred);updateDots(history.slice(-5));
+    const f=document.getElementById('flash');f.textContent='';f.className='result-flash';updateStats();
     if(mmEnabled){mmLevel=1;mmUpdateDisplay();}
   }
 
   // ── MONEY MANAGEMENT ─────────────────────────────────────────────────────
   const MM_LEVELS=10;
-  let mmEnabled=false, mmBalance=0, mmInitBalance=0, mmStartBet=0, mmMult=1, mmLevel=1;
+  let mmEnabled=false,mmBalance=0,mmInitBalance=0,mmStartBet=0,mmMult=1,mmLevel=1;
+  let mmBets=[]; // pre-computed bet for each level
 
-  function mmCurrentBet(){return mmStartBet*Math.pow(mmMult,mmLevel-1);}
+  // ─ Core formula:
+  // L1 = startBet
+  // LN = L(N-1) × mult + sum(L1 … L(N-1))
+  // Each level covers all previous losses when won.
+  function computeMMBets(startBet,mult,levels){
+    const bets=[startBet];
+    for(let i=1;i<levels;i++){
+      const sumPrev=bets.reduce((s,b)=>s+b,0);
+      bets.push(bets[i-1]*mult+sumPrev);
+    }
+    return bets;
+  }
+
+  function mmCurrentBet(){return mmBets[mmLevel-1]||mmStartBet;}
 
   function mmApply(){
     const bal=parseFloat(document.getElementById('mm-balance').value);
@@ -615,19 +534,17 @@
     }
     errEl.style.display='none';
     mmEnabled=true;mmBalance=bal;mmInitBalance=bal;mmStartBet=bet;mmMult=mul;mmLevel=1;
+    mmBets=computeMMBets(mmStartBet,mmMult,MM_LEVELS);
     const chip=document.getElementById('mm-status-chip');
     chip.textContent='Active';chip.classList.add('active');
     document.getElementById('mm-live').style.display='block';
-    renderLogTable(); // rebuild table header with bet/balance columns
-    mmBuildLadder();
-    mmUpdateDisplay();
+    // Show formula hint
+    document.getElementById('mm-formula-hint').innerHTML=
+      `<strong>Formula:</strong> L1 = $${fmtNum(bet)} &nbsp;│&nbsp; L2 = L1 × ${mul} + L1 &nbsp;│&nbsp; LN = L(N-1) × ${mul} + sum of all previous bets`;
+    renderLogTable();mmBuildLadder();mmUpdateDisplay();
   }
 
-  function mmResetBalance(){
-    if(!mmEnabled)return;
-    mmBalance=mmInitBalance;mmLevel=1;
-    mmUpdateDisplay();
-  }
+  function mmResetBalance(){if(!mmEnabled)return;mmBalance=mmInitBalance;mmLevel=1;mmUpdateDisplay();}
 
   function mmOnResult(hit){
     if(!mmEnabled)return;
@@ -642,8 +559,7 @@
     for(let i=1;i<=MM_LEVELS;i++){
       const chip=document.createElement('div');
       chip.id='mm-chip-'+i;
-      const betAmt=mmStartBet*Math.pow(mmMult,i-1);
-      chip.innerHTML=`<div class="mm-chip-num">L${i}</div><div class="mm-chip-bet">$${fmtNum(betAmt)}</div>`;
+      chip.innerHTML=`<div class="mm-chip-num">L${i}</div><div class="mm-chip-bet">$${fmtNum(mmBets[i-1])}</div>`;
       c.appendChild(chip);
     }
     mmUpdateChips();
@@ -656,10 +572,9 @@
   }
   function mmUpdateDisplay(){
     if(!mmEnabled)return;
-    const bet=mmCurrentBet(), pnl=mmBalance-mmInitBalance;
+    const bet=mmCurrentBet(),pnl=mmBalance-mmInitBalance,streak=mmLevel-1;
     document.getElementById('mm-bet-amount').textContent='$'+fmtNum(bet);
-    const streak=mmLevel-1;
-    document.getElementById('mm-bet-hint').textContent='Level '+mmLevel+' of '+MM_LEVELS+(streak>0?' — '+streak+' loss'+(streak>1?'ses':'')+' in a row':'');
+    document.getElementById('mm-bet-hint').textContent='Level '+mmLevel+' of '+MM_LEVELS+(streak>0?' — '+streak+' loss'+(streak>1?'ses':'')+' streak':'');
     document.getElementById('mm-disp-balance').textContent='$'+fmtNum(mmBalance);
     document.getElementById('mm-disp-level').textContent='L'+mmLevel+'/'+MM_LEVELS;
     const pnlEl=document.getElementById('mm-disp-pnl');
@@ -670,40 +585,26 @@
     mmUpdateChips();
   }
 
-  function fmtNum(n){
-    const r=Math.round(n*100)/100;
-    return r%1===0?r.toLocaleString():r.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  }
+  function fmtNum(n){const r=Math.round(n*100)/100;return r%1===0?r.toLocaleString():r.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
 
   // ── EXPORT ───────────────────────────────────────────────────────────────
   function exportCSV(){
-    const log=activeLog(); if(!log.length)return;
-    const keys=Object.keys(log[0]);
+    const log=activeLog();if(!log.length)return;
     const header=['round','predicted','actual','result','accuracy%',...(mmEnabled?['bet','balance']:[])];
     const rows=[header.join(','),...log.map(r=>[r.round,r.pred===1?'BIG':'SMALL',r.actual===1?'BIG':'SMALL',r.hit?'Correct':'Wrong',r.acc,...(mmEnabled?[r.bet,r.balance]:[])].join(','))];
     downloadFile(rows.join('\n'),`bdg-s${activeLogTab}-${dateStr()}.csv`,'text/csv');
   }
   function exportJSON(){
-    const log=activeLog(); if(!log.length)return;
-    const s1Correct=log.filter(r=>r.hit).length;
-    const payload={exportedAt:new Date().toISOString(),strategy:'Strategy '+activeLogTab,totalRounds:log.length,correct:s1Correct,accuracy:log.length>0?Math.round(s1Correct/log.length*100)+'%':'-',rounds:log.map(r=>({round:r.round,prediction:r.pred===1?'BIG':'SMALL',actual:r.actual===1?'BIG':'SMALL',result:r.hit?'Correct':'Wrong',accuracy:r.acc+'%',...(mmEnabled?{bet:r.bet,balance:r.balance}:{})})) };
+    const log=activeLog();if(!log.length)return;
+    const c=log.filter(r=>r.hit).length;
+    const payload={exportedAt:new Date().toISOString(),strategy:'Strategy '+activeLogTab,totalRounds:log.length,correct:c,accuracy:Math.round(c/log.length*100)+'%',rounds:log.map(r=>({round:r.round,prediction:r.pred===1?'BIG':'SMALL',actual:r.actual===1?'BIG':'SMALL',result:r.hit?'Correct':'Wrong',accuracy:r.acc+'%',...(mmEnabled?{bet:r.bet,balance:r.balance}:{})})) };
     downloadFile(JSON.stringify(payload,null,2),`bdg-s${activeLogTab}-${dateStr()}.json`,'application/json');
   }
-  function downloadFile(content,filename,type){
-    const blob=new Blob([content],{type});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download=filename;
-    document.body.appendChild(a);a.click();
-    document.body.removeChild(a);URL.revokeObjectURL(url);
-  }
+  function downloadFile(content,filename,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
   function dateStr(){return new Date().toISOString().slice(0,10);}
 
-  // ── INIT ─────────────────────────────────────────────────────────────────
-  currentPred=getNextPred();
-  updatePredDisplay(currentPred);
-  updateDots(history.slice(-5));
-  updateStats();
+  // ── INIT ────────────────────────────────────────────────────────────────
+  currentPred=getNextPred();updatePredDisplay(currentPred);updateDots(history.slice(-5));updateStats();
 </script>
 </body>
 </html>

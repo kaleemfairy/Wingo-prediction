@@ -10,7 +10,6 @@ import time
 import requests
 import websocket
 
-# ── read config ───────────────────────────────────────────────────────────────
 import config
 
 PHONE   = f'{config.PHONE_IP}:{config.PHONE_ADB_PORT}'
@@ -20,12 +19,14 @@ CDP_URL = f'http://localhost:{config.CHROME_DEBUG_PORT}'
 print(f'[ADB] Connecting to {PHONE} ...')
 subprocess.run(['adb', 'connect', PHONE], capture_output=True)
 time.sleep(1)
+# Chrome on Android exposes DevTools via a Unix abstract socket, not a TCP port
 subprocess.run(
     ['adb', '-s', PHONE, 'forward',
-     f'tcp:{config.CHROME_DEBUG_PORT}', f'tcp:{config.CHROME_DEBUG_PORT}'],
+     f'tcp:{config.CHROME_DEBUG_PORT}', 'localabstract:chrome_devtools_remote'],
     capture_output=True,
 )
-time.sleep(0.5)
+time.sleep(1)
+print(f'[ADB] Chrome DevTools -> localhost:{config.CHROME_DEBUG_PORT}')
 
 # ── find tab ──────────────────────────────────────────────────────────────────
 print('[CDP] Listing tabs ...')

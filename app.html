@@ -10,100 +10,150 @@
   <script src="firebase-config.js"></script>
   <style>
     :root {
-      --bg-primary: #0a0e1a;--bg-card: #111827;--bg-card2: #1a2236;
-      --accent-big: #f97316;--accent-small: #22d3ee;
-      --accent-glow-big: rgba(249,115,22,0.35);--accent-glow-small: rgba(34,211,238,0.35);
-      --text-primary: #f1f5f9;--text-muted: #64748b;--border: #1e293b;
-      --green: #22c55e;--red: #ef4444;--gold: #fbbf24;
+      --bg-primary:#0a0e1a;--bg-card:#111827;--bg-card2:#1a2236;
+      --accent-big:#f97316;--accent-small:#22d3ee;
+      --accent-glow-big:rgba(249,115,22,.35);--accent-glow-small:rgba(34,211,238,.35);
+      --text-primary:#f1f5f9;--text-muted:#64748b;--border:#1e293b;
+      --green:#22c55e;--red:#ef4444;--gold:#fbbf24;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg-primary); color: var(--text-primary); min-height: 100vh;
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{
+      width:100%;overflow-x:hidden;
+      font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+      background:var(--bg-primary);color:var(--text-primary);min-height:100vh;
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,211,238,0.08), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(249,115,22,0.06), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -10%,rgba(34,211,238,.08),transparent),
+        radial-gradient(ellipse 60% 40% at 80% 110%,rgba(249,115,22,.06),transparent);
     }
-    #auth-gate {
-      position: fixed; inset: 0; background: var(--bg-primary);
-      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    #auth-gate{
+      position:fixed;inset:0;background:var(--bg-primary);
+      display:flex;align-items:center;justify-content:center;z-index:9999;
     }
-    #auth-gate p { color: var(--text-muted); font-size: .9rem; }
-    #deactivated-banner {
-      display: none;
-      background: rgba(239,68,68,.12); border-bottom: 1px solid rgba(239,68,68,.3);
-      padding: 14px 24px; text-align: center; color: var(--red); font-size: .88rem; font-weight: 500;
+    #auth-gate p{color:var(--text-muted);font-size:.9rem;}
+    #deactivated-banner{
+      display:none;
+      background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.3);
+      padding:14px 24px;text-align:center;color:var(--red);font-size:.88rem;font-weight:500;
+      width:100%;
     }
-    header { width: 100%; background: var(--bg-primary); border-bottom: 1px solid var(--border); padding: 18px 24px; }
-    .hdr-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .hdr-title h1 {
-      font-size: clamp(1.1rem, 3.5vw, 1.7rem); font-weight: 800;
-      background: linear-gradient(135deg, var(--accent-small) 0%, #a78bfa 50%, var(--accent-big) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .hdr-title p { color: var(--text-muted); font-size: .78rem; margin-top: 2px; }
-    .hdr-user { display: flex; align-items: center; gap: 10px; }
-    .user-email { font-size: .78rem; color: var(--text-muted); }
-    .btn-logout {
-      background: transparent; border: 1px solid var(--border); border-radius: 8px;
-      padding: 6px 14px; color: var(--text-muted); font-size: .78rem;
-      cursor: pointer; transition: border-color .2s, color .2s; font-family: inherit;
-    }
-    .btn-logout:hover { border-color: var(--red); color: var(--red); }
-    .round-badge {
-      display: inline-block; margin-top: 10px;
-      background: var(--bg-card2); border: 1px solid var(--border); border-radius: 999px;
-      padding: 4px 16px; font-size: .78rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;
-    }
-    .round-badge span { color: var(--gold); font-weight: 700; }
-    main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 20px; grid-template-columns: 1fr; }
-    @media (min-width: 680px) {
-      main { grid-template-columns: 1fr 1fr; grid-template-areas: 'predict predict' 'history stats' 'controls controls' 'log log'; }
-      .card-predict{grid-area:predict;} .card-history{grid-area:history;} .card-stats{grid-area:stats;} .card-controls{grid-area:controls;} .card-log{grid-area:log;}
-    }
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
-    .card-title {
-      font-size: .72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-      color: var(--text-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
-    }
-    /* Export buttons sit on the right of the log card title */
-    .card-log .card-title { justify-content: space-between; }
-    .export-btns { display: flex; gap: 6px; letter-spacing: 0; text-transform: none; }
-    .btn-export {
-      display: flex; align-items: center; gap: 5px;
-      background: transparent; border: 1px solid var(--border); border-radius: 8px;
-      padding: 5px 12px; color: var(--text-muted); font-size: .72rem; font-weight: 600;
-      cursor: pointer; transition: border-color .2s, color .2s; font-family: inherit;
-    }
-    .btn-export:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
-    .btn-export:disabled { opacity: .35; cursor: not-allowed; }
 
-    .card-predict { text-align: center; padding: 32px 22px; }
-    .pred-label { font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
-    .pred-ring { display: inline-block; border-radius: 50%; padding: 20px; margin-bottom: 8px; transition: background .4s, box-shadow .4s; }
-    .pred-ring.big   { background: rgba(249,115,22,.08); box-shadow: 0 0 60px var(--accent-glow-big); }
-    .pred-ring.small { background: rgba(34,211,238,.07); box-shadow: 0 0 60px var(--accent-glow-small); }
-    .pred-ring.pending { background: transparent; box-shadow: none; }
-    .pred-value { font-size: clamp(3rem,10vw,5rem); font-weight: 900; line-height: 1; transition: color .4s, text-shadow .4s; }
-    .pred-value.big   { color: var(--accent-big);   text-shadow: 0 0 40px var(--accent-glow-big),  0 0 80px var(--accent-glow-big); }
-    .pred-value.small { color: var(--accent-small);  text-shadow: 0 0 40px var(--accent-glow-small), 0 0 80px var(--accent-glow-small); }
-    .pred-value.pending { color: var(--text-muted); text-shadow: none; }
-    .prob-bars { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
-    .prob-row { display: flex; align-items: center; gap: 10px; font-size: .82rem; }
-    .prob-row .label { width: 46px; text-align: right; font-weight: 600; }
-    .prob-row .label.big-label   { color: var(--accent-big); }
-    .prob-row .label.small-label { color: var(--accent-small); }
-    .bar-track { flex: 1; height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 999px; transition: width .6s cubic-bezier(.4,0,.2,1); }
-    .bar-fill.big   { background: linear-gradient(90deg,#ea580c,#f97316); }
-    .bar-fill.small { background: linear-gradient(90deg,#0891b2,#22d3ee); }
-    .prob-pct { width: 40px; font-weight: 700; font-size: .82rem; }
-    .result-dots { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-    .dot { width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;letter-spacing:.5px;transition:all .3s;border:2px solid transparent; }
-    .dot.big   { background:rgba(249,115,22,.18); border-color:var(--accent-big);   color:var(--accent-big);   box-shadow:0 0 12px var(--accent-glow-big); }
-    .dot.small { background:rgba(34,211,238,.15); border-color:var(--accent-small);  color:var(--accent-small); box-shadow:0 0 12px var(--accent-glow-small); }
-    .dot.empty { background:var(--bg-card2);border-color:var(--border);color:var(--text-muted); }
+    /* ── HEADER ── */
+    header{
+      display:block;width:100%;margin:0;
+      background:var(--bg-primary);border-bottom:1px solid var(--border);
+      padding:18px 24px;
+    }
+    .hdr-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .hdr-title h1{
+      font-size:clamp(1.1rem,3.5vw,1.7rem);font-weight:800;
+      background:linear-gradient(135deg,var(--accent-small) 0%,#a78bfa 50%,var(--accent-big) 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .hdr-title p{color:var(--text-muted);font-size:.78rem;margin-top:2px;}
+    .hdr-user{display:flex;align-items:center;gap:10px;}
+    .user-email{font-size:.78rem;color:var(--text-muted);}
+    .btn-logout{
+      background:transparent;border:1px solid var(--border);border-radius:8px;
+      padding:6px 14px;color:var(--text-muted);font-size:.78rem;
+      cursor:pointer;transition:border-color .2s,color .2s;font-family:inherit;
+    }
+    .btn-logout:hover{border-color:var(--red);color:var(--red);}
+    .round-badge{
+      display:inline-block;margin-top:10px;
+      background:var(--bg-card2);border:1px solid var(--border);border-radius:999px;
+      padding:4px 16px;font-size:.78rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;
+    }
+    .round-badge span{color:var(--gold);font-weight:700;}
+
+    /* ── MAIN GRID ── */
+    main{max-width:960px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:20px;grid-template-columns:1fr;}
+    @media(min-width:680px){
+      main{
+        grid-template-columns:1fr 1fr;
+        grid-template-areas:'strategy strategy' 'predict predict' 'history stats' 'controls controls' 'log log';
+      }
+      .card-strategy{grid-area:strategy;}
+      .card-predict{grid-area:predict;}
+      .card-history{grid-area:history;}
+      .card-stats{grid-area:stats;}
+      .card-controls{grid-area:controls;}
+      .card-log{grid-area:log;}
+    }
+
+    /* ── CARDS ── */
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:22px;}
+    .card-title{
+      font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--text-muted);margin-bottom:18px;display:flex;align-items:center;gap:8px;
+    }
+    .card-log .card-title{justify-content:space-between;}
+    .export-btns{display:flex;gap:6px;letter-spacing:0;text-transform:none;}
+    .btn-export{
+      display:flex;align-items:center;gap:5px;
+      background:transparent;border:1px solid var(--border);border-radius:8px;
+      padding:5px 12px;color:var(--text-muted);font-size:.72rem;font-weight:600;
+      cursor:pointer;transition:border-color .2s,color .2s;font-family:inherit;
+    }
+    .btn-export:hover:not(:disabled){border-color:var(--green);color:var(--green);}
+    .btn-export:disabled{opacity:.35;cursor:not-allowed;}
+
+    /* ── STRATEGY CARD ── */
+    .strategy-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+    .btn-strategy{
+      flex:1;min-width:160px;
+      background:var(--bg-card2);border:2px solid var(--border);border-radius:12px;
+      padding:12px 20px;color:var(--text-muted);font-size:.85rem;font-weight:700;
+      cursor:pointer;transition:all .2s;font-family:inherit;text-align:center;line-height:1.4;
+    }
+    .btn-strategy .s-num{display:block;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;opacity:.7;}
+    .btn-strategy:hover:not(.active){border-color:#4f46e5;color:#a78bfa;}
+    .btn-strategy.active{
+      background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(167,139,250,.15));
+      border-color:#7c3aed;color:#c4b5fd;
+      box-shadow:0 0 20px rgba(124,58,237,.25);
+    }
+    .strategy-desc{
+      font-size:.78rem;color:var(--text-muted);line-height:1.6;
+      background:var(--bg-card2);border-radius:10px;padding:10px 14px;
+      border-left:3px solid #7c3aed;
+    }
+
+    /* ── PREDICT CARD ── */
+    .card-predict{text-align:center;padding:32px 22px;}
+    .pred-label{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;}
+    .pred-strategy-badge{
+      display:inline-block;margin-bottom:14px;
+      background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:999px;
+      padding:3px 14px;font-size:.7rem;font-weight:700;color:#a78bfa;letter-spacing:1px;
+    }
+    .pred-ring{display:inline-block;border-radius:50%;padding:20px;margin-bottom:8px;transition:background .4s,box-shadow .4s;}
+    .pred-ring.big{background:rgba(249,115,22,.08);box-shadow:0 0 60px var(--accent-glow-big);}
+    .pred-ring.small{background:rgba(34,211,238,.07);box-shadow:0 0 60px var(--accent-glow-small);}
+    .pred-ring.pending{background:transparent;box-shadow:none;}
+    .pred-value{font-size:clamp(3rem,10vw,5rem);font-weight:900;line-height:1;transition:color .4s,text-shadow .4s;}
+    .pred-value.big{color:var(--accent-big);text-shadow:0 0 40px var(--accent-glow-big),0 0 80px var(--accent-glow-big);}
+    .pred-value.small{color:var(--accent-small);text-shadow:0 0 40px var(--accent-glow-small),0 0 80px var(--accent-glow-small);}
+    .pred-value.pending{color:var(--text-muted);text-shadow:none;}
+    .prob-bars{margin-top:24px;display:flex;flex-direction:column;gap:10px;}
+    .prob-row{display:flex;align-items:center;gap:10px;font-size:.82rem;}
+    .prob-row .label{width:46px;text-align:right;font-weight:600;}
+    .prob-row .label.big-label{color:var(--accent-big);}
+    .prob-row .label.small-label{color:var(--accent-small);}
+    .bar-track{flex:1;height:10px;background:var(--border);border-radius:999px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:999px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+    .bar-fill.big{background:linear-gradient(90deg,#ea580c,#f97316);}
+    .bar-fill.small{background:linear-gradient(90deg,#0891b2,#22d3ee);}
+    .prob-pct{width:40px;font-weight:700;font-size:.82rem;}
+
+    /* ── HISTORY DOTS ── */
+    .result-dots{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+    .dot{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;letter-spacing:.5px;transition:all .3s;border:2px solid transparent;}
+    .dot.big{background:rgba(249,115,22,.18);border-color:var(--accent-big);color:var(--accent-big);box-shadow:0 0 12px var(--accent-glow-big);}
+    .dot.small{background:rgba(34,211,238,.15);border-color:var(--accent-small);color:var(--accent-small);box-shadow:0 0 12px var(--accent-glow-small);}
+    .dot.empty{background:var(--bg-card2);border-color:var(--border);color:var(--text-muted);}
     @media(min-width:680px){.dot{width:60px;height:60px;font-size:.7rem;}}
+
+    /* ── STATS ── */
     .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .stat-box{background:var(--bg-card2);border-radius:12px;padding:14px;text-align:center;}
     .stat-val{font-size:1.7rem;font-weight:800;line-height:1.1;}
@@ -113,20 +163,24 @@
     .accuracy-bar-track{width:100%;height:8px;background:var(--border);border-radius:999px;overflow:hidden;margin-top:6px;}
     .accuracy-bar-fill{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);border-radius:999px;transition:width .6s cubic-bezier(.4,0,.2,1);}
     .accuracy-pct-label{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:4px;}
+
+    /* ── CONTROLS ── */
     .card-controls .inner{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;}
     .btn{border:none;cursor:pointer;font-weight:700;font-size:.9rem;border-radius:12px;padding:13px 26px;transition:transform .15s,box-shadow .2s,opacity .2s;letter-spacing:.3px;}
-    .btn:active{transform:scale(.96);} .btn:disabled{opacity:.45;cursor:not-allowed;}
-    .btn-big   {background:linear-gradient(135deg,#ea580c,#f97316);color:#fff;box-shadow:0 4px 20px rgba(249,115,22,.35);}
+    .btn:active{transform:scale(.96);}.btn:disabled{opacity:.45;cursor:not-allowed;}
+    .btn-big{background:linear-gradient(135deg,#ea580c,#f97316);color:#fff;box-shadow:0 4px 20px rgba(249,115,22,.35);}
     .btn-big:hover:not(:disabled){box-shadow:0 6px 28px rgba(249,115,22,.5);}
-    .btn-small {background:linear-gradient(135deg,#0891b2,#22d3ee);color:#fff;box-shadow:0 4px 20px rgba(34,211,238,.3);}
+    .btn-small{background:linear-gradient(135deg,#0891b2,#22d3ee);color:#fff;box-shadow:0 4px 20px rgba(34,211,238,.3);}
     .btn-small:hover:not(:disabled){box-shadow:0 6px 28px rgba(34,211,238,.5);}
-    .btn-auto  {background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3);}
+    .btn-auto{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3);}
     .btn-auto:hover:not(:disabled){box-shadow:0 6px 28px rgba(139,92,246,.5);}
-    .btn-reset {background:var(--bg-card2);color:var(--text-muted);border:1px solid var(--border);}
+    .btn-reset{background:var(--bg-card2);color:var(--text-muted);border:1px solid var(--border);}
     .btn-reset:hover{color:var(--red);border-color:var(--red);}
     .ctrl-hint{width:100%;text-align:center;font-size:.75rem;color:var(--text-muted);margin-top:2px;}
     .result-flash{width:100%;text-align:center;font-size:1rem;font-weight:700;min-height:28px;transition:opacity .3s;}
-    .result-flash.correct{color:var(--green);} .result-flash.wrong{color:var(--red);}
+    .result-flash.correct{color:var(--green);}.result-flash.wrong{color:var(--red);}
+
+    /* ── LOG TABLE ── */
     .log-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
     table{width:100%;border-collapse:collapse;font-size:.82rem;}
     th{background:var(--bg-card2);color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:.68rem;padding:10px 14px;text-align:center;}
@@ -137,7 +191,14 @@
     .tag.small{background:rgba(34,211,238,.12);color:var(--accent-small);}
     .tag.correct{background:rgba(34,197,94,.15);color:var(--green);}
     .tag.wrong{background:rgba(239,68,68,.15);color:var(--red);}
-    footer{text-align:center;padding:16px;font-size:.72rem;color:var(--text-muted);border-top:1px solid var(--border);line-height:1.6;}
+
+    /* ── FOOTER ── */
+    footer{
+      display:block;width:100%;margin:0;
+      text-align:center;padding:16px 24px;font-size:.72rem;color:var(--text-muted);
+      border-top:1px solid var(--border);line-height:1.6;
+    }
+
     @keyframes spin-in{from{opacity:0;transform:scale(.7) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
     .anim-pop{animation:spin-in .35s cubic-bezier(.34,1.56,.64,1) both;}
   </style>
@@ -162,8 +223,32 @@
 </header>
 
 <main>
+
+  <!-- Strategy Selector -->
+  <div class="card card-strategy">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Prediction Strategy
+    </div>
+    <div class="strategy-row">
+      <button class="btn-strategy active" id="btn-s1" onclick="switchStrategy(1)">
+        <span class="s-num">Strategy 1</span>
+        Pattern ML
+      </button>
+      <button class="btn-strategy" id="btn-s2" onclick="switchStrategy(2)">
+        <span class="s-num">Strategy 2</span>
+        Reverse on Wrong
+      </button>
+    </div>
+    <div class="strategy-desc" id="strategy-desc">
+      Analyzes the pattern of recent results against historical data to predict the next outcome using frequency-based ML.
+    </div>
+  </div>
+
+  <!-- Prediction Display -->
   <div class="card card-predict">
     <div class="pred-label">Next Round Prediction</div>
+    <div class="pred-strategy-badge" id="active-strategy-badge">Strategy 1 &mdash; Pattern ML</div>
     <div class="pred-ring pending" id="pred-ring"><div class="pred-value pending" id="pred-value">&mdash;</div></div>
     <div class="prob-bars">
       <div class="prob-row"><span class="label big-label">BIG</span><div class="bar-track"><div class="bar-fill big" id="bar-big" style="width:50%"></div></div><span class="prob-pct" id="pct-big">50%</span></div>
@@ -171,11 +256,15 @@
     </div>
   </div>
 
+  <!-- Last 5 Results -->
   <div class="card card-history">
     <div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Last 5 Results</div>
-    <div class="result-dots" id="result-dots"><div class="dot empty">?</div><div class="dot empty">?</div><div class="dot empty">?</div><div class="dot empty">?</div><div class="dot empty">?</div></div>
+    <div class="result-dots" id="result-dots">
+      <div class="dot empty">?</div><div class="dot empty">?</div><div class="dot empty">?</div><div class="dot empty">?</div><div class="dot empty">?</div>
+    </div>
   </div>
 
+  <!-- Live Stats -->
   <div class="card card-stats">
     <div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="12" x2="8" y2="17"/><line x1="12" y1="8" x2="12" y2="17"/><line x1="16" y1="14" x2="16" y2="17"/></svg>Live Stats</div>
     <div class="stats-grid">
@@ -191,6 +280,7 @@
     </div>
   </div>
 
+  <!-- Controls -->
   <div class="card card-controls">
     <div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Enter Actual Result</div>
     <div class="inner">
@@ -203,6 +293,7 @@
     <div class="result-flash" id="flash"></div>
   </div>
 
+  <!-- Round History -->
   <div class="card card-log">
     <div class="card-title">
       <span style="display:flex;align-items:center;gap:8px;">
@@ -210,7 +301,7 @@
         Round History
       </span>
       <div class="export-btns">
-        <button class="btn-export" id="btn-csv" onclick="exportCSV()" disabled title="Download as CSV (Excel)">
+        <button class="btn-export" id="btn-csv" onclick="exportCSV()" disabled title="Download as CSV">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           CSV
         </button>
@@ -222,12 +313,14 @@
     </div>
     <div class="log-table-wrap">
       <table>
-        <thead><tr><th>Round</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Accuracy</th></tr></thead>
-        <tbody id="log-body"><tr><td colspan="5" style="color:var(--text-muted);padding:20px 14px;">No rounds yet - enter a result above to begin.</td></tr></tbody>
+        <thead><tr><th>Round</th><th>Strategy</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Accuracy</th></tr></thead>
+        <tbody id="log-body"><tr><td colspan="6" style="color:var(--text-muted);padding:20px 14px;">No rounds yet &mdash; enter a result above to begin.</td></tr></tbody>
       </table>
     </div>
   </div>
+
 </main>
+
 <footer>BDG BIG/SMALL Predictor &bull; Educational ML Demo &bull; Expected accuracy ~50% &bull; Not financial advice.</footer>
 
 <script>
@@ -249,140 +342,213 @@
 
   function doLogout() { auth.signOut().then(() => window.location.href = 'index.html'); }
 
-  // Predictor
+  // ── PREDICTOR ────────────────────────────────────────────────────────────
   const WINDOW_SIZE = 5, INITIAL_HISTORY = 500;
   function seededRng(seed) {
     let s = seed >>> 0;
     return () => { s = Math.imul(s,1664525)+1013904223>>>0; return s/0x100000000; };
   }
   const rng0 = seededRng(42);
-  let history = Array.from({length:INITIAL_HISTORY},()=>rng0()>.5?1:0);
-  let roundNum=0,correct=0,total=0,bigCount=0,smallCount=0,flashTimer=null,currentPred=null;
+  let history = Array.from({length:INITIAL_HISTORY}, () => rng0() > .5 ? 1 : 0);
 
-  // Full log — no row cap, used for export
+  let roundNum=0, correct=0, total=0, bigCount=0, smallCount=0, flashTimer=null, currentPred=null;
   let roundLog = [];
 
+  // Strategy state
+  let strategy   = 1;     // 1 = Pattern ML  |  2 = Reverse on Wrong
+  let lastPredValue = null;  // prediction made last round (0 or 1)
+  let lastHit    = null;  // whether last round prediction was correct
+
+  const STRATEGY_INFO = [
+    'Analyzes the pattern of recent results against historical data to predict the next outcome using frequency-based ML.',
+    'When the previous prediction was wrong, flips to the opposite outcome for the next round. Falls back to Pattern ML otherwise.'
+  ];
+  const STRATEGY_NAMES = ['Strategy 1 — Pattern ML', 'Strategy 2 — Reverse on Wrong'];
+
+  // ── ML PREDICTOR ─────────────────────────────────────────────────────────
   function predict(seq) {
-    const win=seq.slice(-WINDOW_SIZE),key=win.join(',');
-    let bigAfter=0,matches=0;
-    for(let i=WINDOW_SIZE;i<history.length;i++){
-      const w=history.slice(i-WINDOW_SIZE,i).join(',');
-      if(w===key){matches++;if(history[i]===1)bigAfter++;}
+    const win = seq.slice(-WINDOW_SIZE), key = win.join(',');
+    let bigAfter = 0, matches = 0;
+    for (let i = WINDOW_SIZE; i < history.length; i++) {
+      const w = history.slice(i-WINDOW_SIZE, i).join(',');
+      if (w === key) { matches++; if (history[i] === 1) bigAfter++; }
     }
-    let bigProb=matches<3?history.filter(x=>x===1).length/history.length:bigAfter/matches;
-    const alpha=Math.min(matches,20)/20;
-    bigProb=bigProb*alpha+.5*(1-alpha);
-    const bigP=Math.round(bigProb*100);
-    return{prediction:bigP>=50?1:0,bigProb:bigP,smallProb:100-bigP};
+    let bigProb = matches < 3 ? history.filter(x=>x===1).length/history.length : bigAfter/matches;
+    const alpha = Math.min(matches,20)/20;
+    bigProb = bigProb*alpha + .5*(1-alpha);
+    const bigP = Math.round(bigProb*100);
+    return { prediction: bigP>=50?1:0, bigProb:bigP, smallProb:100-bigP };
   }
-  function updatePredDisplay(pred){
-    const el=document.getElementById('pred-value'),ring=document.getElementById('pred-ring'),cls=pred.prediction===1?'big':'small';
-    el.textContent=pred.prediction===1?'BIG':'SMALL';
-    el.className='pred-value anim-pop '+cls; ring.className='pred-ring '+cls;
-    document.getElementById('bar-big').style.width=pred.bigProb+'%';
-    document.getElementById('bar-small').style.width=pred.smallProb+'%';
-    document.getElementById('pct-big').textContent=pred.bigProb+'%';
-    document.getElementById('pct-small').textContent=pred.smallProb+'%';
+
+  // ── STRATEGY RESOLVER ────────────────────────────────────────────────────
+  function getNextPred() {
+    if (strategy === 1) {
+      return predict(history);
+    }
+    // Strategy 2: if last prediction was wrong, predict the opposite
+    if (lastPredValue !== null && lastHit === false) {
+      const opp = lastPredValue === 1 ? 0 : 1;
+      return { prediction: opp, bigProb: opp===1 ? 68 : 32, smallProb: opp===1 ? 32 : 68 };
+    }
+    // First round or last was correct: use ML
+    return predict(history);
   }
-  function updateDots(last5){
-    const c=document.getElementById('result-dots'); c.innerHTML='';
-    last5.forEach(v=>{const d=document.createElement('div');d.className='dot '+(v===1?'big':'small');d.textContent=v===1?'BIG':'SMALL';c.appendChild(d);});
+
+  // ── SWITCH STRATEGY ───────────────────────────────────────────────────────
+  function switchStrategy(n) {
+    strategy = n;
+    document.getElementById('btn-s1').classList.toggle('active', n===1);
+    document.getElementById('btn-s2').classList.toggle('active', n===2);
+    document.getElementById('strategy-desc').textContent = STRATEGY_INFO[n-1];
+    document.getElementById('active-strategy-badge').textContent = STRATEGY_NAMES[n-1];
+    // Recompute prediction immediately with new strategy
+    currentPred = getNextPred();
+    updatePredDisplay(currentPred);
   }
-  function updateStats(){
-    document.getElementById('hdr-round').textContent=roundNum;
-    document.getElementById('stat-total').textContent=total;
-    document.getElementById('stat-correct').textContent=correct;
-    document.getElementById('stat-big-count').textContent=bigCount;
-    document.getElementById('stat-small-count').textContent=smallCount;
-    if(total>0){const acc=Math.round(correct/total*100);document.getElementById('stat-acc').textContent=acc+'% ('+correct+'/'+total+')';document.getElementById('acc-bar').style.width=acc+'%';}
-    else{document.getElementById('stat-acc').textContent='-';document.getElementById('acc-bar').style.width='0%';}
+
+  // ── DISPLAY HELPERS ───────────────────────────────────────────────────────
+  function updatePredDisplay(pred) {
+    const el=document.getElementById('pred-value'), ring=document.getElementById('pred-ring');
+    const cls = pred.prediction===1 ? 'big' : 'small';
+    el.textContent = pred.prediction===1 ? 'BIG' : 'SMALL';
+    el.className = 'pred-value anim-pop '+cls;
+    ring.className = 'pred-ring '+cls;
+    document.getElementById('bar-big').style.width   = pred.bigProb+'%';
+    document.getElementById('bar-small').style.width = pred.smallProb+'%';
+    document.getElementById('pct-big').textContent   = pred.bigProb+'%';
+    document.getElementById('pct-small').textContent = pred.smallProb+'%';
   }
-  function addLogRow(round,pred,actual,hit,acc){
-    // Save to full log for export (no cap)
+  function updateDots(last5) {
+    const c = document.getElementById('result-dots'); c.innerHTML='';
+    last5.forEach(v => {
+      const d=document.createElement('div');
+      d.className='dot '+(v===1?'big':'small');
+      d.textContent=v===1?'BIG':'SMALL';
+      c.appendChild(d);
+    });
+  }
+  function updateStats() {
+    document.getElementById('hdr-round').textContent     = roundNum;
+    document.getElementById('stat-total').textContent    = total;
+    document.getElementById('stat-correct').textContent  = correct;
+    document.getElementById('stat-big-count').textContent   = bigCount;
+    document.getElementById('stat-small-count').textContent = smallCount;
+    if (total > 0) {
+      const acc = Math.round(correct/total*100);
+      document.getElementById('stat-acc').textContent    = acc+'% ('+correct+'/'+total+')';
+      document.getElementById('acc-bar').style.width     = acc+'%';
+    } else {
+      document.getElementById('stat-acc').textContent    = '-';
+      document.getElementById('acc-bar').style.width     = '0%';
+    }
+  }
+  function addLogRow(round, pred, actual, hit, acc, strat) {
     roundLog.push({
-      round,
+      round, strategy: 'S'+strat,
       prediction: pred===1?'BIG':'SMALL',
       actual: actual===1?'BIG':'SMALL',
       result: hit?'Correct':'Wrong',
       accuracy: acc+'%'
     });
-    // Enable export buttons once there is data
     document.getElementById('btn-csv').disabled  = false;
     document.getElementById('btn-json').disabled = false;
 
-    // Table shows latest 100 rows only
-    const body=document.getElementById('log-body');
-    if(body.querySelector('[colspan]'))body.innerHTML='';
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${round}</td><td><span class="tag ${pred===1?'big':'small'}">${pred===1?'BIG':'SMALL'}</span></td><td><span class="tag ${actual===1?'big':'small'}">${actual===1?'BIG':'SMALL'}</span></td><td><span class="tag ${hit?'correct':'wrong'}">${hit?'Correct':'Wrong'}</span></td><td>${acc}%</td>`;
-    body.insertBefore(tr,body.firstChild);
-    while(body.children.length>100)body.removeChild(body.lastChild);
+    const body = document.getElementById('log-body');
+    if (body.querySelector('[colspan]')) body.innerHTML='';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${round}</td>
+      <td style="font-size:.7rem;color:var(--text-muted);">S${strat}</td>
+      <td><span class="tag ${pred===1?'big':'small'}">${pred===1?'BIG':'SMALL'}</span></td>
+      <td><span class="tag ${actual===1?'big':'small'}">${actual===1?'BIG':'SMALL'}</span></td>
+      <td><span class="tag ${hit?'correct':'wrong'}">${hit?'Correct':'Wrong'}</span></td>
+      <td>${acc}%</td>
+    `;
+    body.insertBefore(tr, body.firstChild);
+    while (body.children.length > 100) body.removeChild(body.lastChild);
   }
-  function showFlash(hit){
-    const el=document.getElementById('flash');
-    el.textContent=hit?'✓ Correct prediction!':'✗ Wrong prediction';
-    el.className='result-flash '+(hit?'correct':'wrong');
-    if(flashTimer)clearTimeout(flashTimer);
-    flashTimer=setTimeout(()=>{el.textContent='';el.className='result-flash';},2200);
-  }
-  function submitResult(actual){
-    roundNum++;total++;if(actual===1)bigCount++;else smallCount++;
-    const hit=actual===currentPred.prediction;if(hit)correct++;
-    const acc=Math.round(correct/total*100);
-    addLogRow(roundNum,currentPred.prediction,actual,hit,acc);
-    showFlash(hit); history.push(actual);
-    currentPred=predict(history);updatePredDisplay(currentPred);updateDots(history.slice(-5));updateStats();
-  }
-  function autoRound(){submitResult(Math.random()>.5?1:0);}
-  function resetAll(){
-    const rng2=seededRng(Date.now());
-    history=Array.from({length:INITIAL_HISTORY},()=>rng2()>.5?1:0);
-    roundNum=0;correct=0;total=0;bigCount=0;smallCount=0;
-    roundLog=[];
-    document.getElementById('btn-csv').disabled  = true;
-    document.getElementById('btn-json').disabled = true;
-    currentPred=predict(history);updatePredDisplay(currentPred);updateDots(history.slice(-5));
-    document.getElementById('log-body').innerHTML='<tr><td colspan="5" style="color:var(--text-muted);padding:20px 14px;">No rounds yet - enter a result above to begin.</td></tr>';
-    const f=document.getElementById('flash');f.textContent='';f.className='result-flash';updateStats();
+  function showFlash(hit) {
+    const el = document.getElementById('flash');
+    el.textContent = hit ? '✓ Correct prediction!' : '✗ Wrong prediction';
+    el.className = 'result-flash '+(hit?'correct':'wrong');
+    if (flashTimer) clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => { el.textContent=''; el.className='result-flash'; }, 2200);
   }
 
-  // ── EXPORT ────────────────────────────────────────────────────────────────
+  // ── SUBMIT RESULT ────────────────────────────────────────────────────────
+  function submitResult(actual) {
+    roundNum++; total++;
+    if (actual===1) bigCount++; else smallCount++;
+    const hit = actual === currentPred.prediction;
+    if (hit) correct++;
+
+    // Remember for Strategy 2
+    lastPredValue = currentPred.prediction;
+    lastHit       = hit;
+
+    const acc = Math.round(correct/total*100);
+    addLogRow(roundNum, currentPred.prediction, actual, hit, acc, strategy);
+    showFlash(hit);
+    history.push(actual);
+    currentPred = getNextPred();
+    updatePredDisplay(currentPred);
+    updateDots(history.slice(-5));
+    updateStats();
+  }
+
+  function autoRound() { submitResult(Math.random() > .5 ? 1 : 0); }
+
+  function resetAll() {
+    const rng2 = seededRng(Date.now());
+    history = Array.from({length:INITIAL_HISTORY}, () => rng2() > .5 ? 1 : 0);
+    roundNum=0; correct=0; total=0; bigCount=0; smallCount=0;
+    roundLog=[];
+    lastPredValue=null; lastHit=null;
+    document.getElementById('btn-csv').disabled  = true;
+    document.getElementById('btn-json').disabled = true;
+    currentPred = getNextPred();
+    updatePredDisplay(currentPred);
+    updateDots(history.slice(-5));
+    document.getElementById('log-body').innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);padding:20px 14px;">No rounds yet &mdash; enter a result above to begin.</td></tr>';
+    const f = document.getElementById('flash'); f.textContent=''; f.className='result-flash';
+    updateStats();
+  }
+
+  // ── EXPORT ───────────────────────────────────────────────────────────────
   function exportCSV() {
     if (!roundLog.length) return;
     const rows = [
-      'Round,Prediction,Actual,Result,Accuracy',
-      ...roundLog.map(r => `${r.round},${r.prediction},${r.actual},${r.result},${r.accuracy}`)
+      'Round,Strategy,Prediction,Actual,Result,Accuracy',
+      ...roundLog.map(r => `${r.round},${r.strategy},${r.prediction},${r.actual},${r.result},${r.accuracy}`)
     ];
     downloadFile(rows.join('\n'), `bdg-predictor-${dateStr()}.csv`, 'text/csv');
   }
-
   function exportJSON() {
     if (!roundLog.length) return;
     const payload = {
-      exportedAt:   new Date().toISOString(),
-      totalRounds:  roundLog.length,
-      correct:      correct,
-      accuracy:     total > 0 ? Math.round(correct/total*100)+'%' : '-',
-      rounds:       roundLog
+      exportedAt:  new Date().toISOString(),
+      totalRounds: roundLog.length,
+      correct,
+      accuracy:    total>0 ? Math.round(correct/total*100)+'%' : '-',
+      rounds:      roundLog
     };
     downloadFile(JSON.stringify(payload, null, 2), `bdg-predictor-${dateStr()}.json`, 'application/json');
   }
-
   function downloadFile(content, filename, type) {
-    const blob = new Blob([content], { type });
+    const blob = new Blob([content], {type});
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
   }
-
   function dateStr() { return new Date().toISOString().slice(0,10); }
 
-  // Init
-  currentPred=predict(history);updatePredDisplay(currentPred);updateDots(history.slice(-5));updateStats();
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  currentPred = getNextPred();
+  updatePredDisplay(currentPred);
+  updateDots(history.slice(-5));
+  updateStats();
 </script>
 </body>
 </html>

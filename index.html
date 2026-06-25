@@ -34,14 +34,11 @@
     }
 
     header {
+      width: 100%;
       text-align: center;
-      padding: 28px 16px 16px;
+      padding: 28px 16px 20px;
       border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(8px);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: rgba(10,14,26,0.9);
+      background: var(--bg-primary);
     }
     header h1 {
       font-size: clamp(1.4rem, 4vw, 2rem);
@@ -138,8 +135,8 @@
       line-height: 1;
       transition: color .4s, text-shadow .4s;
     }
-    .pred-value.big   { color: var(--accent-big);   text-shadow: 0 0 40px var(--accent-glow-big),  0 0 80px var(--accent-glow-big); }
-    .pred-value.small { color: var(--accent-small);  text-shadow: 0 0 40px var(--accent-glow-small), 0 0 80px var(--accent-glow-small); }
+    .pred-value.big   { color: var(--accent-big);  text-shadow: 0 0 40px var(--accent-glow-big),  0 0 80px var(--accent-glow-big); }
+    .pred-value.small { color: var(--accent-small); text-shadow: 0 0 40px var(--accent-glow-small), 0 0 80px var(--accent-glow-small); }
     .pred-value.pending { color: var(--text-muted); text-shadow: none; }
 
     .prob-bars { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
@@ -402,15 +399,15 @@
   }
 
   function updateStats() {
-    document.getElementById('hdr-round').textContent      = roundNum;
-    document.getElementById('stat-total').textContent     = total;
-    document.getElementById('stat-correct').textContent   = correct;
-    document.getElementById('stat-big-count').textContent = bigCount;
+    document.getElementById('hdr-round').textContent        = roundNum;
+    document.getElementById('stat-total').textContent       = total;
+    document.getElementById('stat-correct').textContent     = correct;
+    document.getElementById('stat-big-count').textContent   = bigCount;
     document.getElementById('stat-small-count').textContent = smallCount;
     if (total > 0) {
       const acc = Math.round(correct / total * 100);
-      document.getElementById('stat-acc').textContent  = acc + '% (' + correct + '/' + total + ')';
-      document.getElementById('acc-bar').style.width   = acc + '%';
+      document.getElementById('stat-acc').textContent = acc + '% (' + correct + '/' + total + ')';
+      document.getElementById('acc-bar').style.width  = acc + '%';
     } else {
       document.getElementById('stat-acc').textContent = '-';
       document.getElementById('acc-bar').style.width  = '0%';

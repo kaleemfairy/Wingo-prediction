@@ -13,13 +13,10 @@ class CDPClient:
         self.port = port
         self.ws = None
         self._msg_id = 0
-        self._pending = {}  # id → response dict
+        self._pending = {}
         self._lock = threading.Lock()
 
-    # ── connection ────────────────────────────────────────────────────────────
-
     def connect(self, url_filter=None):
-        """Connect to the first Chrome tab whose URL contains url_filter."""
         tabs = requests.get(f'http://{self.host}:{self.port}/json', timeout=5).json()
         tab = None
         for t in tabs:
@@ -31,15 +28,18 @@ class CDPClient:
         if not tab:
             raise RuntimeError(f'No tab found matching "{url_filter}"')
 
+        # Chrome 94+ rejects WebSocket connections unless Origin matches.
+        # Passing 'http://localhost' bypasses the CORS check.
         self.ws = websocket.WebSocketApp(
             tab['webSocketDebuggerUrl'],
+            header={'Origin': 'http://localhost'},
             on_message=self._on_message,
-            on_error=lambda ws, e: print(f'[CDP] WS error: {e}'),
+            on_error=lambda ws, e: None,
         )
         t = threading.Thread(target=self.ws.run_forever, daemon=True)
         t.start()
-        time.sleep(0.8)
-        print(f'[CDP] Connected: {tab["url"][:60]}')
+        time.sleep(1.0)
+        print(f'[CDP] Connected: {tab["url"][:70]}')
 
     def _on_message(self, ws, raw):
         data = json.loads(raw)
@@ -47,12 +47,15 @@ class CDPClient:
             with self._lock:
                 self._pending[data['id']] = data
 
-    # ── core primitives ───────────────────────────────────────────────────────
-
     def _send(self, method, params=None, timeout=6):
+        if not self.ws or not self.ws.sock:
+            return None
         self._msg_id += 1
         mid = self._msg_id
-        self.ws.send(json.dumps({'id': mid, 'method': method, 'params': params or {}}))
+        try:
+            self.ws.send(json.dumps({'id': mid, 'method': method, 'params': params or {}}))
+        except Exception:
+            return None
         deadline = time.time() + timeout
         while time.time() < deadline:
             with self._lock:
@@ -62,7 +65,6 @@ class CDPClient:
         return None
 
     def evaluate(self, expr, timeout=6):
-        """Evaluate JavaScript in the page and return the result value."""
         resp = self._send(
             'Runtime.evaluate',
             {'expression': expr, 'returnByValue': True, 'awaitPromise': False},
@@ -72,8 +74,6 @@ class CDPClient:
             return None
         result = resp.get('result', {}).get('result', {})
         return result.get('value')
-
-    # ── helpers ───────────────────────────────────────────────────────────────
 
     def get_text(self, selector):
         return self.evaluate(
@@ -87,7 +87,6 @@ class CDPClient:
         )
 
     def set_input(self, selector, value):
-        """Set an input value and fire React/Vue change events."""
         js = f'''
         (function(){{
             var el = document.querySelector({json.dumps(selector)});
@@ -109,3 +108,6 @@ class CDPClient:
             return None
         digits = ''.join(c for c in text if c.isdigit() or c == ':')
         return digits or None
+
+    def is_connected(self):
+        return self.ws is not None and self.ws.sock is not None

@@ -24,6 +24,23 @@
         radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,211,238,0.08), transparent),
         radial-gradient(ellipse 60% 40% at 80% 110%, rgba(249,115,22,0.06), transparent);
     }
+
+    /* Full-screen overlay shown while auth check runs — prevents content flash */
+    #auth-gate {
+      position: fixed; inset: 0;
+      background: var(--bg-primary);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    #auth-gate p { color: var(--text-muted); font-size: .9rem; }
+    /* Deactivated banner */
+    #deactivated-banner {
+      display: none;
+      background: rgba(239,68,68,.12); border-bottom: 1px solid rgba(239,68,68,.3);
+      padding: 14px 24px; text-align: center;
+      color: var(--red); font-size: .88rem; font-weight: 500;
+    }
+
     header { width: 100%; background: var(--bg-primary); border-bottom: 1px solid var(--border); padding: 18px 24px; }
     .hdr-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .hdr-title h1 {
@@ -120,6 +137,13 @@
 </head>
 <body>
 
+<!-- Blocks all content until auth check completes — prevents flash -->
+<div id="auth-gate"><p>Loading…</p></div>
+
+<div id="deactivated-banner">
+  ⚠️ Your account has been deactivated. You will be signed out shortly.
+</div>
+
 <header>
   <div class="hdr-inner">
     <div class="hdr-title">
@@ -185,11 +209,31 @@
 <footer>BDG BIG/SMALL Predictor &bull; Educational ML Demo &bull; Expected accuracy ~50% &bull; Not financial advice.</footer>
 
 <script>
-  // Auth guard
+  const gate = document.getElementById('auth-gate');
+
   auth.onAuthStateChanged(user => {
-    if (!user) { window.location.href = 'index.html'; return; }
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
     document.getElementById('user-email').textContent = user.email;
+
+    // Real-time listener: auto sign-out the moment admin deactivates this account
+    db.collection('users').doc(user.uid).onSnapshot(snap => {
+      if (!snap.exists || snap.data().active === false) {
+        // Show warning banner before signing out
+        document.getElementById('deactivated-banner').style.display = 'block';
+        gate.style.display = 'none'; // hide loading so banner is visible
+        setTimeout(() => {
+          auth.signOut().then(() => { window.location.href = 'index.html'; });
+        }, 2000);
+        return;
+      }
+      // Account is valid — reveal the app
+      gate.style.display = 'none';
+    });
   });
+
   function doLogout() { auth.signOut().then(() => window.location.href = 'index.html'); }
 
   // Predictor logic

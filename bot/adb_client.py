@@ -1,7 +1,5 @@
 import subprocess
 import time
-import io
-from PIL import Image
 
 
 class ADBClient:
@@ -22,13 +20,12 @@ class ADBClient:
         return False
 
     def forward_chrome_debug(self):
-        """Forward phone's Chrome DevTools port to localhost."""
         subprocess.run([
             'adb', '-s', self.device, 'forward',
             f'tcp:{self.chrome_debug_port}',
             'localabstract:chrome_devtools_remote'
         ], check=True)
-        print(f'[ADB] Chrome DevTools → localhost:{self.chrome_debug_port}')
+        print(f'[ADB] Chrome DevTools -> localhost:{self.chrome_debug_port}')
 
     def wake(self):
         subprocess.run([
@@ -43,13 +40,6 @@ class ADBClient:
             'am', 'start', '-a', 'android.intent.action.VIEW', '-d', url
         ])
         time.sleep(2)
-
-    def screenshot(self):
-        data = subprocess.run(
-            ['adb', '-s', self.device, 'exec-out', 'screencap', '-p'],
-            capture_output=True
-        ).stdout
-        return Image.open(io.BytesIO(data))
 
     def tap(self, x, y):
         subprocess.run([

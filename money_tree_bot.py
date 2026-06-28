@@ -59,7 +59,15 @@ BET_OPTION           = "large"   # fallback side when strategy has no history ye
 #  "pattern"    if last 2 draws same → flip; else bet opposite of last result
 #  "frequency"  look at last 20 draws; bet whichever side appeared less often
 # ─────────────────────────────────────────────────────────────────────────────
-STRATEGY             = "anti_last"  # overridden at runtime by strategy.txt if it exists
+STRATEGY             = "anti_last"  # used only when STRATEGY_ROTATION is empty
+#
+# ── AUTO-ROTATION ─────────────────────────────────────────────────────────────
+#  List strategies to cycle through automatically.
+#  Every ROTATION_EVERY bets the bot moves to the next strategy in the list.
+#  Set STRATEGY_ROTATION = [] to disable rotation and always use STRATEGY above.
+# ─────────────────────────────────────────────────────────────────────────────
+STRATEGY_ROTATION    = ["anti_last", "pattern", "frequency"]  # cycle order
+ROTATION_EVERY       = 3          # switch strategy after this many bets
 TARGET_PROFIT        = 500       # stop when session profit reaches this
 STOP_LOSS            = -1000     # stop when session loss reaches this
 MAX_CONSECUTIVE_LOSS = 6         # stop after N losses in a row
@@ -128,6 +136,8 @@ class MoneyTreeBot:
         self._pending     = None   # {"option": "large", "amount": 10}
         self._results     = []     # history of "large"/"small" outcomes for prediction
         self._last_placed = BET_OPTION  # tracks last side placed (for alternate strategy)
+        self._strat_idx   = 0     # current index into STRATEGY_ROTATION
+        self._strat_count = 0     # bets placed under current strategy
 
     # ── Driver ────────────────────────────────────────────────────────────────
 
@@ -301,10 +311,9 @@ class MoneyTreeBot:
             except Exception:
                 pass
 
-    @staticmethod
-    def _get_strategy() -> str:
-        """Read strategy.txt if it exists so you can change strategy mid-game
-        without restarting. File should contain one word, e.g.: anti_last"""
+    def _get_strategy(self) -> str:
+        """Priority: strategy.txt (manual override) → STRATEGY_ROTATION → STRATEGY constant."""
+        # 1. Manual override via file — edit while bot is running
         try:
             path = os.path.join(os.path.dirname(__file__), "strategy.txt")
             if os.path.exists(path):
@@ -313,6 +322,10 @@ class MoneyTreeBot:
                     return val
         except Exception:
             pass
+        # 2. Auto-rotation
+        if STRATEGY_ROTATION:
+            return STRATEGY_ROTATION[self._strat_idx % len(STRATEGY_ROTATION)]
+        # 3. Fixed constant
         return STRATEGY
 
     def _pick_side(self) -> str:
@@ -415,7 +428,11 @@ class MoneyTreeBot:
         print(Fore.CYAN + "=" * 55)
         print(Fore.YELLOW + "\n  LOG IN to Royalwin in the browser window.")
         print(Fore.YELLOW + "  After login, come back here and press Enter.")
-        print(Fore.YELLOW + f"\n  Strategy   : {STRATEGY}  |  Fallback: {BET_OPTION.upper()}")
+        if STRATEGY_ROTATION:
+            print(Fore.YELLOW + f"\n  Strategy   : AUTO-ROTATE every {ROTATION_EVERY} bets")
+            print(Fore.YELLOW + f"  Cycle      : {' → '.join(STRATEGY_ROTATION)}")
+        else:
+            print(Fore.YELLOW + f"\n  Strategy   : {STRATEGY}  |  Fallback: {BET_OPTION.upper()}")
         print(Fore.YELLOW + f"  Base bet   : {BASE_BET}  |  Max bet: {MAX_BET}")
         print(Fore.YELLOW +  "  On loss    : bet × 2.5  (prev × 1.5 + prev)")
         input(Fore.WHITE + "\n  [Press Enter after you are logged in] ")
@@ -485,8 +502,16 @@ class MoneyTreeBot:
         if ok:
             self._pending     = {"option": side, "amount": amount}
             self._last_placed = side
-            self.rounds += 1
+            self.rounds      += 1
+            self._strat_count += 1
             print(Fore.GREEN + "  Bet placed ✓")
+
+            # Auto-rotate strategy every ROTATION_EVERY bets
+            if STRATEGY_ROTATION and self._strat_count >= ROTATION_EVERY:
+                self._strat_count = 0
+                self._strat_idx   = (self._strat_idx + 1) % len(STRATEGY_ROTATION)
+                next_s = STRATEGY_ROTATION[self._strat_idx]
+                print(Fore.MAGENTA + f"  ↻  Strategy rotated → {next_s.upper()}  (every {ROTATION_EVERY} bets)")
         else:
             print(Fore.RED + "  Bet failed — check selectors")
 

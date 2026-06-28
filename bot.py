@@ -69,28 +69,32 @@ SEL = {
         "//input[contains(@placeholder,'point') or contains(@placeholder,'Point') or contains(@placeholder,'amount')]",
         "//input[contains(@class,'input') or contains(@class,'point')]",
     ],
-    # colour bet buttons — royalwin uses text labels
+    # colour bet buttons
     "green":  [
         "//button[normalize-space()='Green']",
         "//div[normalize-space()='Green']",
-        "//*[contains(@class,'green') and (self::button or self::div or self::span)]",
+        "//span[normalize-space()='Green']",
+        "//*[contains(@class,'green')]",
     ],
     "red":    [
         "//button[normalize-space()='Red']",
         "//div[normalize-space()='Red']",
-        "//*[contains(@class,'red') and (self::button or self::div or self::span)]",
+        "//span[normalize-space()='Red']",
+        "//*[contains(@class,'red')]",
     ],
     "violet": [
         "//button[normalize-space()='Violet']",
         "//div[normalize-space()='Violet']",
-        "//*[contains(@class,'violet') and (self::button or self::div or self::span)]",
+        "//span[normalize-space()='Violet']",
+        "//*[contains(@class,'violet')]",
     ],
-    # submit/confirm button — labelled "Submit" on this site
+    # submit button — labelled "Submit" on royalwin6
     "confirm": [
         "//button[normalize-space()='Submit']",
         "//button[normalize-space()='Confirm']",
-        "//button[contains(@class,'submit') or contains(@class,'confirm') or contains(@class,'bet')]",
-        "//*[contains(@class,'submit')]",
+        "//button[contains(@class,'submit')]",
+        "//button[contains(@class,'confirm')]",
+        "//*[contains(@class,'submit-btn')]",
     ],
 }
 
@@ -170,26 +174,19 @@ class WingoBot:
     # ── Game state ────────────────────────────────────────────────────────────
 
     def _get_timer(self) -> int:
-        # Try reading the 3 time boxes (HH MM SS) that royalwin6 uses
+        # Parse the countdown from the full page text — handles HH:MM:SS and MM:SS
         try:
-            boxes = self.driver.find_elements(By.XPATH,
-                "//*[contains(@class,'time') or contains(@class,'num')][string-length(normalize-space())<=2]"
-            )
-            nums = [int(b.text.strip()) for b in boxes if b.text.strip().isdigit()]
-            if len(nums) >= 2:
-                if len(nums) >= 3:
-                    return nums[0]*3600 + nums[1]*60 + nums[2]
-                return nums[0]*60 + nums[1]
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            # HH:MM:SS
+            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\s*:\s*(\d{2})\b", body_text)
+            if m:
+                return int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
+            # MM:SS
+            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\b", body_text)
+            if m:
+                return int(m.group(1))*60 + int(m.group(2))
         except Exception:
             pass
-        # Fallback: parse any HH:MM:SS or MM:SS string on the page
-        text = self.driver.find_element(By.TAG_NAME, "body").text
-        m = re.search(r"(\d+)\s*:\s*(\d+)\s*:\s*(\d+)", text)
-        if m:
-            return int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
-        m = re.search(r"(\d+)\s*:\s*(\d+)", text)
-        if m:
-            return int(m.group(1))*60 + int(m.group(2))
         return 99
 
     def _get_result(self) -> str:
@@ -222,10 +219,16 @@ class WingoBot:
         print(Fore.CYAN + "=" * 55)
         print(Fore.CYAN + "  Royalwin WinGo Bot  (Laptop / Selenium)")
         print(Fore.CYAN + "=" * 55)
-        print(Fore.YELLOW + "\n  LOG IN to Royalwin in the browser window that")
-        print(Fore.YELLOW + "  just opened, then navigate to the Wingo game.")
-        print(Fore.YELLOW + "  Press Enter here when you are on the game page.")
-        input(Fore.WHITE  + "\n  [Press Enter to start the bot] ")
+        print(Fore.YELLOW + "\n  LOG IN to Royalwin in the browser window.")
+        print(Fore.YELLOW + "  After login, come back here and press Enter.")
+        print(Fore.YELLOW + "  The bot will navigate to the Color Win game automatically.")
+        input(Fore.WHITE  + "\n  [Press Enter after you are logged in] ")
+
+        # Navigate to the game page after login
+        print(Fore.CYAN + f"\n  Navigating to game: {GAME_URL}")
+        self.driver.get(GAME_URL)
+        time.sleep(4)
+        print(Fore.GREEN + "  On game page. Starting bot …\n")
 
         try:
             while True:

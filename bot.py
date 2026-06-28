@@ -93,10 +93,34 @@ class WingoBot:
         opts.add_argument("--disable-blink-features=AutomationControlled")
 
         log.info("Opening Chrome …")
-        self.driver = uc.Chrome(options=opts, version_main=149)
+        chrome_ver = self._get_chrome_version()
+        log.info("Detected Chrome version: %s", chrome_ver)
+        self.driver = uc.Chrome(options=opts, version_main=chrome_ver)
         self.driver.maximize_window()
         self.driver.get(GAME_URL)
         log.info("Browser opened at %s", GAME_URL)
+
+    @staticmethod
+    def _get_chrome_version() -> int:
+        """Read the installed Chrome major version from the registry (Windows)."""
+        try:
+            import winreg
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                 r"Software\Google\Chrome\BLBeacon")
+            ver, _ = winreg.QueryValueEx(key, "version")
+            return int(ver.split(".")[0])
+        except Exception:
+            pass
+        try:
+            import subprocess
+            out = subprocess.check_output(
+                r'reg query "HKLM\SOFTWARE\Google\Chrome\BLBeacon" /v version',
+                shell=True, stderr=subprocess.DEVNULL
+            ).decode()
+            ver = out.strip().split()[-1]
+            return int(ver.split(".")[0])
+        except Exception:
+            return 149   # fallback
 
     def quit(self):
         if self.driver:

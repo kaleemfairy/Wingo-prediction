@@ -17,17 +17,27 @@ HOW TO FIND YOUR API ENDPOINTS
 import time
 import logging
 import requests
-from config import AUTH_TOKEN, BASE_URL
+from config import COOKIE_CCT, COOKIE_R, COOKIE_JSESSION, BASE_URL
 
 log = logging.getLogger(__name__)
 
-# Typical headers seen on Royalwin clones — adjust if your version differs.
+# Build cookie string from the three values you copied from your browser.
+_COOKIES = {
+    "cct":       COOKIE_CCT,
+    "r":         COOKIE_R,
+    "JSESSIONID": COOKIE_JSESSION,
+}
+
 _HEADERS = {
     "Content-Type": "application/json;charset=UTF-8",
-    "Authorization": f"Bearer {AUTH_TOKEN}",
     "Accept": "application/json, text/plain, */*",
     "Origin": BASE_URL,
     "Referer": f"{BASE_URL}/",
+    "User-Agent": (
+        "Mozilla/5.0 (Linux; Android 10; Mobile) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Mobile Safari/537.36"
+    ),
 }
 
 # ── Endpoint paths ─────────────────────────────────────────────────────────────
@@ -46,7 +56,8 @@ def _post(endpoint: str, payload: dict, retries: int = 3) -> dict:
     url = BASE_URL.rstrip("/") + endpoint
     for attempt in range(1, retries + 1):
         try:
-            resp = requests.post(url, json=payload, headers=_HEADERS, timeout=10)
+            resp = requests.post(url, json=payload, headers=_HEADERS,
+                                 cookies=_COOKIES, timeout=10)
             resp.raise_for_status()
             data = resp.json()
             # Most WinGo clones wrap response in {"code": 0, "data": {...}}

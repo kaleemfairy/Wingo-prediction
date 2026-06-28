@@ -1,6 +1,5 @@
 """
 Bot configuration — edit before running.
-Copy your token from the browser (see README for how to find it).
 """
 
 import os
@@ -8,13 +7,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── Auth ───────────────────────────────────────────────────────────────────────
-# Paste your login token/cookie from Royalwin here (or set in .env file).
-AUTH_TOKEN = os.getenv("AUTH_TOKEN", "PASTE_YOUR_TOKEN_HERE")
+# ── Auth (Cookie-based) ────────────────────────────────────────────────────────
+# Paste each cookie value you got from javascript:alert(document.cookie)
+# Example values from your browser:
+#   cct=9de496d68d98815735b27a7457bc7716
+#   r=1562811
+#   JSESSIONID=node0w5enf4vhjzcg1h9oin5kljya31689948.node0
+COOKIE_CCT       = os.getenv("COOKIE_CCT",        "PASTE_cct_VALUE_HERE")
+COOKIE_R         = os.getenv("COOKIE_R",           "PASTE_r_VALUE_HERE")
+COOKIE_JSESSION  = os.getenv("COOKIE_JSESSIONID",  "PASTE_JSESSIONID_VALUE_HERE")
 
 # ── API base URL ───────────────────────────────────────────────────────────────
-# Common Royalwin / WinGo API base — update if different on your version.
-BASE_URL = os.getenv("BASE_URL", "https://royalwin.com")
+BASE_URL = os.getenv("BASE_URL", "https://www.royalwin6.com")
 
 # ── Game type ──────────────────────────────────────────────────────────────────
 # "wingo_1"  = 1-minute game

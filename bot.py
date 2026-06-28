@@ -9,6 +9,7 @@ Usage:
 """
 
 import logging
+import os
 import re
 import sys
 import time
@@ -97,8 +98,15 @@ class WingoBot:
         opts.add_experimental_option("excludeSwitches", ["enable-automation"])
         opts.add_experimental_option("useAutomationExtension", False)
 
-        log.info("Opening Chrome (downloading matching ChromeDriver automatically) …")
-        service = Service(ChromeDriverManager().install())
+        log.info("Opening Chrome …")
+        # Uses chromedriver.exe from the same folder as bot.py
+        local_driver = os.path.join(os.path.dirname(__file__), "chromedriver.exe")
+        if os.path.exists(local_driver):
+            log.info("Using local chromedriver.exe")
+            service = Service(local_driver)
+        else:
+            log.info("Local chromedriver.exe not found — trying auto-download …")
+            service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=opts)
         self.driver.get(GAME_URL)
         log.info("Browser opened at %s", GAME_URL)

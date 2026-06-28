@@ -1,152 +1,112 @@
-# Royalwin WinGo Bot — Android / Termux (No PC needed)
+# Royalwin WinGo Bot — Laptop Guide
 
-Runs 100% on your Android phone using **Termux**.  
-No PC, no Appium, no USB cable required.
-
----
-
-## Step 1 — Install Termux
-
-Download **Termux** from **F-Droid** (NOT Play Store — the Play Store version is outdated):
-
-> https://f-droid.org/en/packages/com.termux/
+Controls a real Chrome browser on your laptop using Selenium.
+No phone, no cookies to copy, no API needed.
 
 ---
 
-## Step 2 — Install Python inside Termux
+## Step 1 — Install Python
 
-Open Termux and run these commands one by one:
+Download from https://python.org/downloads  
+During install: **tick "Add Python to PATH"**
 
-```bash
-pkg update -y
-pkg install python git -y
-pip install requests colorama python-dotenv
+Verify:
+```
+python --version
 ```
 
 ---
 
-## Step 3 — Download the bot
+## Step 2 — Download the bot
+
+Open **Command Prompt** (Windows) or **Terminal** (Mac/Linux):
 
 ```bash
 git clone https://github.com/kaleemfairy/Wingo-prediction.git
 cd Wingo-prediction
+git checkout claude/royalwin-mobile-automation-rlixzl
 ```
 
 ---
 
-## Step 4 — Find your Auth Token
-
-The bot needs your login token to place bets via the API.
-
-**How to get it:**
-
-1. Open **Chrome** on your phone
-2. Go to Royalwin and **log in**
-3. Open the Wingo game
-4. In the URL bar type:  `chrome://inspect`  ← won't work on mobile
-
-**Easier method — use Chrome DevTools on phone:**
-1. Open Chrome → three-dot menu → **Settings** → **Privacy and security** → nothing there
-
-**Simplest method:**
-1. Open Royalwin in Chrome
-2. Tap the address bar, type:
-   ```
-   javascript:alert(document.cookie)
-   ```
-   or
-   ```
-   javascript:alert(localStorage.getItem('token'))
-   ```
-3. A popup shows your token — copy it
-
-OR use the **find_api.py** proxy script (Step 4b below).
-
----
-
-## Step 4b — Find API endpoints with the proxy (optional but recommended)
+## Step 3 — Install dependencies
 
 ```bash
-python find_api.py
+pip install -r requirements.txt
 ```
 
-Then in your phone WiFi settings:
-- Long-press your WiFi network → Modify → Advanced → Proxy: **Manual**
-- Host: `127.0.0.1`  Port: `8080`
-
-Open Royalwin in Chrome, place one manual bet.  
-Go back to Termux — all API calls are printed and saved to `captured_api.json`.
-
-Reset WiFi proxy to **None** when done.
-
-Update the `EP_*` paths in `api_client.py` with the captured URLs.
+This installs Selenium and `undetected-chromedriver` (automatically downloads the right ChromeDriver for your Chrome version — no manual setup needed).
 
 ---
 
-## Step 5 — Configure the bot
+## Step 4 — Configure settings
 
-```bash
-cp .env.example .env
-nano .env
+Open `config.py` in any text editor (Notepad, VS Code, etc.):
+
+```python
+GAME_URL  = "https://www.royalwin6.com"   # already set correctly
+BASE_BET  = 10        # your starting bet
+MAX_BET   = 5000      # maximum bet per round
+COLOR     = "green"   # "red", "green", or "violet"
+STRATEGY  = "martingale"
+TARGET_PROFIT        = 500
+STOP_LOSS            = -1000
+MAX_CONSECUTIVE_LOSS = 6
+HEADLESS  = False     # keep False so you can see the browser
 ```
-
-Paste your token:
-```
-AUTH_TOKEN=eyJhbGci...your_token_here
-BASE_URL=https://royalwin.com
-```
-
-Save: press `Ctrl+X` → `Y` → `Enter`
-
-Then edit `config.py` to set your bet size and strategy:
-```bash
-nano config.py
-```
-
-Key settings:
-| Setting | Default | Meaning |
-|---------|---------|---------|
-| `BASE_BET` | 10 | Starting bet amount |
-| `MAX_BET` | 5000 | Never bet more than this |
-| `STRATEGY` | martingale | flat / martingale / anti_martingale / pattern |
-| `COLOR` | green | Which colour to bet on |
-| `TARGET_PROFIT` | 500 | Stop when you win this much |
-| `STOP_LOSS` | -1000 | Stop when you lose this much |
 
 ---
 
-## Step 6 — Run the bot
+## Step 5 — Run the bot
 
 ```bash
 python bot.py
 ```
 
-Press **Ctrl+C** to stop anytime. Session summary is shown and saved to `wingo_bot.log`.
+A Chrome browser window opens automatically.
+
+1. **Log in** to Royalwin in that browser window
+2. **Navigate** to the Wingo game (Lottery → Win Go)
+3. Come back to the terminal and **press Enter**
+
+The bot starts placing bets automatically.
+
+Press **Ctrl+C** anytime to stop. A summary is shown at the end.
 
 ---
 
-## Strategies Explained
+## Step 6 — If bet buttons are not found
 
-| Strategy | How it works |
-|----------|-------------|
-| `flat` | Always bet the same amount (safest) |
-| `martingale` | Double bet after each loss, reset after win |
-| `anti_martingale` | Double bet after each win, reset after loss |
-| `pattern` | Detects colour streaks and bets accordingly |
+The bot uses CSS selectors to find buttons. If they don't match, run:
+
+```bash
+python find_selectors.py
+```
+
+This prints all buttons and inputs on the live page.  
+Update the `SEL` dictionary in `bot.py` with the correct class names.
 
 ---
 
-## Files
+## Strategies
 
-```
-bot.py            Main bot (run this)
-api_client.py     HTTP API calls to Royalwin
-config.py         All settings
-strategy.py       Betting strategy logic
-find_api.py       Proxy tool to discover API endpoints
-.env.example      Token template (copy to .env)
-wingo_bot.log     Auto-created log file
-```
+| Strategy | Behaviour |
+|----------|-----------|
+| `flat` | Always bet BASE_BET |
+| `martingale` | Double after loss, reset after win |
+| `anti_martingale` | Double after win, reset after loss |
+| `pattern` | Follow colour streak patterns |
+
+---
+
+## Safety Limits (in config.py)
+
+| Setting | Default | Meaning |
+|---------|---------|---------|
+| `TARGET_PROFIT` | 500 | Stop when you win this much |
+| `STOP_LOSS` | -1000 | Stop when you lose this much |
+| `MAX_CONSECUTIVE_LOSS` | 6 | Stop after N losses in a row |
+| `MAX_BET` | 5000 | Never bet more than this |
 
 ---
 
@@ -154,8 +114,8 @@ wingo_bot.log     Auto-created log file
 
 | Problem | Fix |
 |---------|-----|
-| `ModuleNotFoundError` | Run `pip install requests colorama python-dotenv` |
-| `APIError: 401` | Token expired — log in again and get a new token |
-| `APIError: All attempts failed` | Check internet; verify BASE_URL in config.py |
-| Result colour not reading | Update `color` key in `api_client.py` to match captured JSON field name |
-| Bot places bet but shows loss every time | The color/colorId mapping may be wrong — check `color_map` in api_client.py |
+| `python` not found | Re-install Python and tick "Add to PATH" |
+| Chrome doesn't open | Run `pip install --upgrade undetected-chromedriver` |
+| Bet buttons not clicked | Run `python find_selectors.py` and update `SEL` in `bot.py` |
+| Bot keeps saying timer=99 | Timer element selector is wrong — run `find_selectors.py` |
+| Chrome version mismatch | Update Chrome to latest version |

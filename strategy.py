@@ -5,50 +5,34 @@ from config import BASE_BET, MAX_BET, STRATEGY, COLOR
 
 class BettingStrategy:
     def __init__(self):
-        self.current_bet   = BASE_BET
-        self.total_profit  = 0.0
-        self.cons_losses   = 0
-        self.cons_wins     = 0
-        self.history       = []   # list of round dicts
+        self.current_bet  = BASE_BET
+        self.total_profit = 0.0
+        self.cons_losses  = 0
+        self.cons_wins    = 0
+        self.history      = []
 
     def next_bet(self) -> dict:
-        return {
-            "amount": min(self.current_bet, MAX_BET),
-            "color":  self._pick_color(),
-        }
+        return {"amount": min(self.current_bet, MAX_BET), "color": self._pick_color()}
 
     def record(self, bet_color: str, result_color: str, amount: float) -> float:
         win          = _is_win(bet_color, result_color)
         round_profit = amount * 1.92 if win else -amount
-
         self.total_profit += round_profit
-        self.history.append({
-            "bet": bet_color, "result": result_color,
-            "amount": amount, "profit": round_profit, "win": win,
-        })
-
+        self.history.append({"bet": bet_color, "result": result_color,
+                              "amount": amount, "profit": round_profit, "win": win})
         if win:
-            self.cons_wins   += 1
-            self.cons_losses  = 0
-            self._on_win()
+            self.cons_wins += 1;  self.cons_losses = 0;  self._on_win()
         else:
-            self.cons_losses += 1
-            self.cons_wins    = 0
-            self._on_loss()
-
+            self.cons_losses += 1; self.cons_wins  = 0;  self._on_loss()
         return round_profit
 
     @property
-    def summary(self) -> dict:
-        n    = len(self.history)
+    def summary(self):
+        n = len(self.history)
         wins = sum(1 for r in self.history if r["win"])
-        return {
-            "rounds":       n,
-            "wins":         wins,
-            "losses":       n - wins,
-            "win_rate":     f"{wins/n*100:.1f}%" if n else "0%",
-            "total_profit": self.total_profit,
-        }
+        return {"rounds": n, "wins": wins, "losses": n - wins,
+                "win_rate": f"{wins/n*100:.1f}%" if n else "0%",
+                "total_profit": self.total_profit}
 
     def _on_win(self):
         if   STRATEGY == "martingale":      self.current_bet = BASE_BET
@@ -62,16 +46,13 @@ class BettingStrategy:
         if STRATEGY != "pattern" or len(self.history) < 3:
             return COLOR
         last = [r["result"] for r in self.history[-5:]]
-        # same colour 3 times in a row → switch
         if len(set(last[-3:])) == 1:
-            opp = {"red": "green", "green": "red", "violet": "green"}
-            return opp.get(last[-1], COLOR)
+            return {"red": "green", "green": "red", "violet": "green"}.get(last[-1], COLOR)
         return COLOR
 
 
 def _is_win(bet: str, result: str) -> bool:
-    if bet == result:
-        return True
-    if bet == "red"   and result == "0": return True   # 0 is red+violet
-    if bet == "green" and result == "5": return True   # 5 is green+violet
+    if bet == result: return True
+    if bet == "red"   and result == "0": return True
+    if bet == "green" and result == "5": return True
     return False

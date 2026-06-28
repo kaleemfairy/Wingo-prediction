@@ -59,7 +59,7 @@ BET_OPTION           = "large"   # fallback side when strategy has no history ye
 #  "pattern"    if last 2 draws same → flip; else bet opposite of last result
 #  "frequency"  look at last 20 draws; bet whichever side appeared less often
 # ─────────────────────────────────────────────────────────────────────────────
-STRATEGY             = "anti_last"
+STRATEGY             = "anti_last"  # overridden at runtime by strategy.txt if it exists
 TARGET_PROFIT        = 500       # stop when session profit reaches this
 STOP_LOSS            = -1000     # stop when session loss reaches this
 MAX_CONSECUTIVE_LOSS = 6         # stop after N losses in a row
@@ -301,32 +301,47 @@ class MoneyTreeBot:
             except Exception:
                 pass
 
+    @staticmethod
+    def _get_strategy() -> str:
+        """Read strategy.txt if it exists so you can change strategy mid-game
+        without restarting. File should contain one word, e.g.: anti_last"""
+        try:
+            path = os.path.join(os.path.dirname(__file__), "strategy.txt")
+            if os.path.exists(path):
+                val = open(path).read().strip().lower()
+                if val in ("flat", "anti_last", "follow", "alternate", "pattern", "frequency"):
+                    return val
+        except Exception:
+            pass
+        return STRATEGY
+
     def _pick_side(self) -> str:
+        strategy = self._get_strategy()
         hist = self._results
         flip = {"large": "small", "small": "large"}
 
-        if STRATEGY == "flat" or not hist:
+        if strategy == "flat" or not hist:
             return BET_OPTION
 
-        if STRATEGY == "anti_last":
+        if strategy == "anti_last":
             # Always bet opposite of what just came out
             return flip[hist[-1]]
 
-        if STRATEGY == "follow":
+        if strategy == "follow":
             # Ride the streak — bet same as last result
             return hist[-1]
 
-        if STRATEGY == "alternate":
+        if strategy == "alternate":
             # Ignore results; just flip from the last BET placed
             return flip.get(self._last_placed, BET_OPTION)
 
-        if STRATEGY == "pattern":
+        if strategy == "pattern":
             # If last 2 draws identical → flip; otherwise bet opposite of last
             if len(hist) >= 2 and hist[-1] == hist[-2]:
                 return flip[hist[-1]]
             return flip[hist[-1]]
 
-        if STRATEGY == "frequency":
+        if strategy == "frequency":
             # Bet whichever side appeared LESS in last 20 draws (expect balance)
             window = hist[-20:]
             large_n = window.count("large")
@@ -463,8 +478,9 @@ class MoneyTreeBot:
         # Pick side using pattern prediction
         side   = self._pick_side()
         amount = min(self.current_bet, MAX_BET)
-        last_res = f"  last={self._results[-1].upper()}" if self._results else ""
-        print(Fore.CYAN + f"\n  Timer: {timer}s  |  [{STRATEGY}]{last_res}  →  Bet {side.upper()}  Rs {amount}")
+        live_strat = self._get_strategy()
+        last_res   = f"  last={self._results[-1].upper()}" if self._results else ""
+        print(Fore.CYAN + f"\n  Timer: {timer}s  |  [{live_strat}]{last_res}  →  Bet {side.upper()}  Rs {amount}")
         ok = self._place_bet(side, amount)
         if ok:
             self._pending     = {"option": side, "amount": amount}

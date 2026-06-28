@@ -64,8 +64,9 @@ HEADLESS             = False
 SEL = {
     # Sidebar countdown for Money Tree 30s
     "timer": [
-        "//p[@class='name' and normalize-space(text())='Money Tree 30s']/following-sibling::span[contains(@class,'count-down')][1]",
-        "//p[@class='name' and normalize-space(text())='Money Tree 30s']/../span[contains(@class,'count-down')]",
+        # following:: searches the whole document forward, not just siblings
+        "//p[@class='name' and normalize-space()='Money Tree 30s']/following::span[contains(@class,'count-down')][1]",
+        "//p[normalize-space()='Money Tree 30s']/following::span[contains(@class,'count-down')][1]",
     ],
 
     # Most-recent draw ID (to detect new rounds)
@@ -186,26 +187,62 @@ class MoneyTreeBot:
 
     # ── Timer ─────────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _parse_countdown(text: str) -> int:
+        """Parse 'HH:MM:SS' or 'MM:SS' into total seconds. Returns -1 on failure."""
+        text = text.strip()
+        if not text or text.lower() == "closed":
+            return 0
+        m = re.search(r"(\d{1,2}):(\d{2}):(\d{2})", text)
+        if m:
+            return int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
+        m = re.search(r"(\d{1,2}):(\d{2})", text)
+        if m:
+            return int(m.group(1))*60 + int(m.group(2))
+        return -1
+
     def _get_timer(self) -> int:
+        # ── Approach 1: count-down span following "Money Tree 30s" label ─────────
         for xpath in SEL["timer"]:
             try:
-                els = self.driver.find_elements(By.XPATH, xpath)
-                for el in els:
-                    text = (el.text or el.get_attribute("textContent") or "").strip()
-                    if not text or text.lower() == "closed":
-                        return 0
-                    m = re.search(r"(\d{1,2}):(\d{2}):(\d{2})", text)
-                    if m:
-                        val = int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
-                        if val <= 120:
-                            return val
-                    m = re.search(r"(\d{1,2}):(\d{2})", text)
-                    if m:
-                        val = int(m.group(1))*60 + int(m.group(2))
-                        if val <= 60:
-                            return val
+                el = self.driver.find_element(By.XPATH, xpath)
+                text = (el.text or el.get_attribute("textContent") or "").strip()
+                val = self._parse_countdown(text)
+                if val == 0:
+                    return 0          # "Closed"
+                if 0 < val <= 35:
+                    return val
             except Exception:
                 continue
+
+        # ── Approach 2: scan ALL count-down spans, accept values ≤ 35s ───────────
+        try:
+            for el in self.driver.find_elements(By.XPATH, "//span[contains(@class,'count-down')]"):
+                text = (el.text or el.get_attribute("textContent") or "").strip()
+                val = self._parse_countdown(text)
+                if 0 < val <= 35:
+                    return val
+        except Exception:
+            pass
+
+        # ── Approach 3: wagerEndTime vs system clock ──────────────────────────────
+        try:
+            el = self.driver.find_element(By.XPATH, "//span[@class='wagerEndTime']")
+            text = (el.text or "").strip()
+            m = re.search(r"(\d{2}):(\d{2}):(\d{2})", text)
+            if m:
+                from datetime import datetime
+                now = datetime.now()
+                dl_secs  = int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
+                now_secs = now.hour*3600 + now.minute*60 + now.second
+                remaining = dl_secs - now_secs
+                if remaining < 0:
+                    remaining += 86400
+                if 0 <= remaining <= 35:
+                    return remaining
+        except Exception:
+            pass
+
         return 99
 
     # ── Result detection ──────────────────────────────────────────────────────

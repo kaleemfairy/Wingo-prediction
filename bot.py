@@ -47,35 +47,50 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ── CSS / XPath selectors ─────────────────────────────────────────────────────
-# These are auto-detected. If the bot can't find elements, run:
-#   python find_selectors.py
-# to print all elements on the live page.
+# ── Selectors (XPath) ─────────────────────────────────────────────────────────
+# Based on royalwin6.com Color Win game layout.
+# XPath is used throughout — supports text matching unlike CSS.
 
 SEL = {
-    # countdown timer (text like "00:43")
-    "timer":     [
-        ".game-time", ".countdown", "[class*='time']",
-        "[class*='count']", ".time-num", ".timer",
+    # countdown timer — the 3-part "00 : 00 : 04" display
+    "timer": [
+        "//*[contains(@class,'time') or contains(@class,'countdown') or contains(@class,'clock')]",
+        "//span[contains(@class,'num') and string-length(normalize-space())>0]",
+        "//*[@class and contains(text(),':')]",
     ],
-    # last result number shown after each round
-    "result":    [
-        ".result-num", ".last-result", "[class*='result']",
-        ".number-result", ".game-result",
+    # last winning result (number or colour text after round ends)
+    "result": [
+        "//*[contains(@class,'result') or contains(@class,'winning') or contains(@class,'lastNum')]",
+        "//*[contains(@class,'history')]//*[1]",
     ],
-    # bet amount input
-    "amount":    [
-        "input[type='number']", "input[placeholder*='amount' i]",
-        "input[placeholder*='bet' i]", ".bet-input input",
+    # bet amount input  (labelled "Point" on this site)
+    "amount": [
+        "//input[@type='number']",
+        "//input[contains(@placeholder,'point') or contains(@placeholder,'Point') or contains(@placeholder,'amount')]",
+        "//input[contains(@class,'input') or contains(@class,'point')]",
     ],
-    # colour buttons
-    "green":     ["button.green", ".btn-green", "[class*='green']", "button:contains('Green')"],
-    "red":       ["button.red",   ".btn-red",   "[class*='red']",   "button:contains('Red')"],
-    "violet":    ["button.violet",".btn-violet","[class*='violet']","button:contains('Violet')"],
-    # confirm/place-bet button
-    "confirm":   [
-        "button.confirm", ".confirm-btn", "[class*='confirm']",
-        "button:contains('Confirm')", "button:contains('Place')",
+    # colour bet buttons — royalwin uses text labels
+    "green":  [
+        "//button[normalize-space()='Green']",
+        "//div[normalize-space()='Green']",
+        "//*[contains(@class,'green') and (self::button or self::div or self::span)]",
+    ],
+    "red":    [
+        "//button[normalize-space()='Red']",
+        "//div[normalize-space()='Red']",
+        "//*[contains(@class,'red') and (self::button or self::div or self::span)]",
+    ],
+    "violet": [
+        "//button[normalize-space()='Violet']",
+        "//div[normalize-space()='Violet']",
+        "//*[contains(@class,'violet') and (self::button or self::div or self::span)]",
+    ],
+    # submit/confirm button — labelled "Submit" on this site
+    "confirm": [
+        "//button[normalize-space()='Submit']",
+        "//button[normalize-space()='Confirm']",
+        "//button[contains(@class,'submit') or contains(@class,'confirm') or contains(@class,'bet')]",
+        "//*[contains(@class,'submit')]",
     ],
 }
 
@@ -119,11 +134,13 @@ class WingoBot:
     # ── Element helpers ───────────────────────────────────────────────────────
 
     def _find(self, selectors: list, timeout: int = 6):
-        """Try each CSS selector in order, return first match."""
+        """Try each XPath selector in order, return first match."""
+        wait_each = max(1, timeout // len(selectors))
         for sel in selectors:
             try:
-                el = WebDriverWait(self.driver, timeout / len(selectors)).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, sel))
+                by = By.XPATH if sel.startswith("/") else By.CSS_SELECTOR
+                el = WebDriverWait(self.driver, wait_each).until(
+                    EC.presence_of_element_located((by, sel))
                 )
                 if el:
                     return el
@@ -153,12 +170,27 @@ class WingoBot:
     # ── Game state ────────────────────────────────────────────────────────────
 
     def _get_timer(self) -> int:
-        text = self._text(SEL["timer"])
-        m = re.search(r"(\d+):(\d+)", text)
+        # Try reading the 3 time boxes (HH MM SS) that royalwin6 uses
+        try:
+            boxes = self.driver.find_elements(By.XPATH,
+                "//*[contains(@class,'time') or contains(@class,'num')][string-length(normalize-space())<=2]"
+            )
+            nums = [int(b.text.strip()) for b in boxes if b.text.strip().isdigit()]
+            if len(nums) >= 2:
+                if len(nums) >= 3:
+                    return nums[0]*3600 + nums[1]*60 + nums[2]
+                return nums[0]*60 + nums[1]
+        except Exception:
+            pass
+        # Fallback: parse any HH:MM:SS or MM:SS string on the page
+        text = self.driver.find_element(By.TAG_NAME, "body").text
+        m = re.search(r"(\d+)\s*:\s*(\d+)\s*:\s*(\d+)", text)
         if m:
-            return int(m.group(1)) * 60 + int(m.group(2))
-        m = re.search(r"\d+", text)
-        return int(m.group()) if m else 99
+            return int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
+        m = re.search(r"(\d+)\s*:\s*(\d+)", text)
+        if m:
+            return int(m.group(1))*60 + int(m.group(2))
+        return 99
 
     def _get_result(self) -> str:
         text = self._text(SEL["result"]).lower().strip()

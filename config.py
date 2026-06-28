@@ -3,7 +3,10 @@ Bot configuration — edit these values before running.
 """
 
 # ── Game URL ───────────────────────────────────────────────────────────────────
-GAME_URL = "https://www.royalwin6.com"   # homepage — bot will navigate to Wingo
+# Set this to the exact URL of the Color Win game page.
+# From your screenshot the lottery lobby is at royalwin6.com/lottery-bet/...
+# Click "Color Win 30s" or "Color Win 15s" in the lobby and copy that URL here.
+GAME_URL = "https://www.royalwin6.com/lottery-bet/COLOR_WIN_30S"
 
 # ── Bet settings ───────────────────────────────────────────────────────────────
 BASE_BET = 10       # starting bet amount

@@ -53,7 +53,8 @@ BET_OPTION           = "large"   # "large" or "small"  ← change per your predi
 TARGET_PROFIT        = 500       # stop when session profit reaches this
 STOP_LOSS            = -1000     # stop when session loss reaches this
 MAX_CONSECUTIVE_LOSS = 6         # stop after N losses in a row
-BET_CUTOFF_SECONDS   = 12        # skip round if fewer than N seconds remain (3-step bet takes ~5s + 3s draw-close buffer)
+BET_START_SECONDS    = 20        # only bet when timer is AT OR BELOW this value
+BET_STOP_SECONDS     = 5         # do NOT bet when timer is below this (draw closing)
 WIN_MULTIPLIER       = 1.96      # payout multiplier shown on site (odds 1.96)
 HEADLESS             = False
 # ═══════════════════════════════════════════════════════
@@ -73,9 +74,12 @@ SEL = {
     # Dice sum from latest draw history entry (e.g. '9' or '11')
     "result_sum": "(//span[contains(@class,'specialNum') and contains(@class,'small')])[1]",
 
-    # LARGE / SMALL bet spans  (class confirmed: TOLARGE / TOSMALL)
-    "large":  "//span[contains(@class,'TOLARGE')]",
-    "small":  "//span[contains(@class,'TOSMALL')]",
+    # LARGE / SMALL bet spans — scoped to this game to avoid clicking number buttons
+    "large":  "//span[contains(@class,'TOLARGE') and contains(@class,'SELF_MONEY_TREE_30S')]",
+    "small":  "//span[contains(@class,'TOSMALL') and contains(@class,'SELF_MONEY_TREE_30S')]",
+
+    # Clear button — removes all selected bets from the slip
+    "clear":  "//button[contains(@class,'clear-btn')]",
 
     # Bet amount input  (class confirmed: money-set)
     "amount": "//input[contains(@class,'money-set')]",
@@ -241,6 +245,10 @@ class MoneyTreeBot:
                 el.send_keys(str(amount))
 
     def _place_bet(self, option: str, amount: int) -> bool:
+        # 0. Clear any previously selected bets (prevents number bets sneaking in)
+        self._click(SEL["clear"], timeout=3)
+        time.sleep(0.3)
+
         # 1. Set amount
         self._set_amount(amount)
         time.sleep(0.4)
@@ -321,14 +329,28 @@ class MoneyTreeBot:
     def _tick(self):
         timer = self._get_timer()
 
-        if timer < BET_CUTOFF_SECONDS:
-            secs = max(timer, 0)
-            print(Fore.YELLOW + f"  {secs}s left — waiting for next round …")
-            # Sleep past the end of this round so next tick starts a fresh round
-            time.sleep(min(secs + 5, 40))
+        # Timer element not found — retry quickly
+        if timer == 99:
+            print(Fore.YELLOW + "  Timer not detected — retrying …")
+            time.sleep(3)
             return
 
-        # Check for a new result (from the round we bet on previously)
+        # Too early: wait until we enter the betting window (BET_START_SECONDS)
+        if timer > BET_START_SECONDS:
+            wait = timer - BET_START_SECONDS
+            print(Fore.YELLOW + f"  {timer}s — waiting {wait}s for betting window …")
+            time.sleep(wait)
+            return
+
+        # Too late: draw closing soon, sleep past end of round into next
+        if timer < BET_STOP_SECONDS:
+            print(Fore.YELLOW + f"  {timer}s — draw closing, waiting for next round …")
+            time.sleep(timer + 6)
+            return
+
+        # ── Betting window: BET_STOP_SECONDS ≤ timer ≤ BET_START_SECONDS ────────
+
+        # Check result from the previous round
         draw_id, outcome = self._get_latest_result()
         if draw_id and draw_id != self._last_draw and self._pending is not None:
             self._last_draw = draw_id
@@ -342,7 +364,7 @@ class MoneyTreeBot:
                 log.warning("Could not parse result for draw %s", draw_id)
             self._pending = None
 
-        # Place bet for this round
+        # Place bet
         amount = min(self.current_bet, MAX_BET)
         print(Fore.CYAN + f"\n  Timer: {timer}s  |  Bet → {BET_OPTION.upper()}  Rs {amount}")
         ok = self._place_bet(BET_OPTION, amount)
@@ -351,12 +373,12 @@ class MoneyTreeBot:
             self.rounds += 1
             print(Fore.GREEN + "  Bet placed ✓")
         else:
-            print(Fore.RED + "  Bet failed — run find_selectors.py to debug popup buttons")
+            print(Fore.RED + "  Bet failed — check selectors")
 
-        # Sleep past the end of this round so next tick starts a fresh round.
-        # timer was read at the START of this tick (before placing bet ~5s ago),
-        # so sleeping timer+2 guarantees we wake up a few seconds into the NEXT round.
-        time.sleep(min(timer + 2, 40))
+        # Sleep past the end of this round.
+        # timer was read before the bet (~5s of actions), so timer+8 puts us
+        # ~8s into the NEXT round with ~22s remaining — well inside betting window.
+        time.sleep(timer + 8)
 
     def _check_stop(self) -> bool:
         p  = self.total_profit

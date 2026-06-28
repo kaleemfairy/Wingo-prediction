@@ -93,7 +93,7 @@ class WingoBot:
         opts.add_argument("--disable-blink-features=AutomationControlled")
 
         log.info("Opening Chrome …")
-        self.driver = uc.Chrome(options=opts)
+        self.driver = uc.Chrome(options=opts, version_main=149)
         self.driver.maximize_window()
         self.driver.get(GAME_URL)
         log.info("Browser opened at %s", GAME_URL)

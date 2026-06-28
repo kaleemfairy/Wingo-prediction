@@ -126,7 +126,7 @@ class WingoBot:
         wait_each = max(1, timeout // len(selectors))
         for sel in selectors:
             try:
-                by = By.XPATH if sel.startswith("/") else By.CSS_SELECTOR
+                by = By.XPATH if (sel.startswith("/") or sel.startswith("(")) else By.CSS_SELECTOR
                 el = WebDriverWait(self.driver, wait_each).until(
                     EC.presence_of_element_located((by, sel))
                 )
@@ -158,21 +158,28 @@ class WingoBot:
     # ── Game state ────────────────────────────────────────────────────────────
 
     def _get_timer(self) -> int:
-        # Read the count-down span which shows "HH:MM:SS" or "MM:SS"
-        try:
-            el = self._find(SEL["timer"], timeout=3)
-            text = (el.text or el.get_attribute("textContent") or "").strip() if el else ""
-            if not text:
-                # Fallback: scan body text for any HH:MM:SS / MM:SS pattern
-                text = self.driver.find_element(By.TAG_NAME, "body").text
-            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\s*:\s*(\d{2})\b", text)
-            if m:
-                return int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
-            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\b", text)
-            if m:
-                return int(m.group(1))*60 + int(m.group(2))
-        except Exception:
-            pass
+        # Look for the count-down span that shows "00:00:06" (H:MM:SS or MM:SS)
+        for xpath in [
+            "//span[contains(@class,'count-down')]",
+            "//span[@class='wagerEndTime']",
+        ]:
+            try:
+                els = self.driver.find_elements(By.XPATH, xpath)
+                for el in els:
+                    text = (el.text or el.get_attribute("textContent") or "").strip()
+                    # Must match a short countdown, not a wall-clock time like 12:12:44
+                    m = re.search(r"(\d{1,2}):(\d{2}):(\d{2})", text)
+                    if m:
+                        val = int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
+                        if val <= 3600:   # sanity: countdown rounds are ≤ 1 hour
+                            return val
+                    m = re.search(r"(\d{1,2}):(\d{2})", text)
+                    if m:
+                        val = int(m.group(1))*60 + int(m.group(2))
+                        if val <= 60:     # Color Win rounds are ≤ 60 seconds
+                            return val
+            except Exception:
+                continue
         return 99
 
     def _get_result(self) -> str:

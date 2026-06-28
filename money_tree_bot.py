@@ -47,7 +47,7 @@ log = logging.getLogger(__name__)
 #  SETTINGS  — edit these before running
 # ═══════════════════════════════════════════════════════
 GAME_URL             = "https://www.royalwin6.com/lottery-bet/SELF_MONEY_TREE_30S"
-BASE_BET             = 10        # Rs — starting bet, also reset-to amount after a win
+BASE_BET             = 2         # Rs — starting bet, also reset-to amount after a win
 MAX_BET              = 5000      # never bet more than this
 BET_OPTION           = "large"   # fallback side when strategy has no history yet
 #

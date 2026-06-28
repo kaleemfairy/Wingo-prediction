@@ -52,49 +52,33 @@ log = logging.getLogger(__name__)
 # XPath is used throughout — supports text matching unlike CSS.
 
 SEL = {
-    # countdown timer — the 3-part "00 : 00 : 04" display
+    # countdown timer — "count-down" span shows "00:00:06"
     "timer": [
-        "//*[contains(@class,'time') or contains(@class,'countdown') or contains(@class,'clock')]",
-        "//span[contains(@class,'num') and string-length(normalize-space())>0]",
-        "//*[@class and contains(text(),':')]",
+        "//span[contains(@class,'count-down') and contains(text(),':')]",
+        "//span[@class='wagerEndTime']",
     ],
-    # last winning result (number or colour text after round ends)
+    # last winning result — first small history ball (returns a digit 0-9)
     "result": [
-        "//*[contains(@class,'result') or contains(@class,'winning') or contains(@class,'lastNum')]",
-        "//*[contains(@class,'history')]//*[1]",
+        "(//span[contains(@class,'ball') and contains(@class,'small') and contains(@class,'fill')])[1]",
     ],
-    # bet amount input  (labelled "Point" on this site)
+    # bet amount input — class "money-set"
     "amount": [
-        "//input[@type='number']",
-        "//input[contains(@placeholder,'point') or contains(@placeholder,'Point') or contains(@placeholder,'amount')]",
-        "//input[contains(@class,'input') or contains(@class,'point')]",
+        "//input[contains(@class,'money-set')]",
     ],
-    # colour bet buttons
+    # colour bet spans — identified by TOGreen / TORed / TOViolet class
     "green":  [
-        "//button[normalize-space()='Green']",
-        "//div[normalize-space()='Green']",
-        "//span[normalize-space()='Green']",
-        "//*[contains(@class,'green')]",
+        "//span[contains(@class,'TOGreen')]",
     ],
     "red":    [
-        "//button[normalize-space()='Red']",
-        "//div[normalize-space()='Red']",
-        "//span[normalize-space()='Red']",
-        "//*[contains(@class,'red')]",
+        "//span[contains(@class,'TORed')]",
     ],
     "violet": [
-        "//button[normalize-space()='Violet']",
-        "//div[normalize-space()='Violet']",
-        "//span[normalize-space()='Violet']",
-        "//*[contains(@class,'violet')]",
+        "//span[contains(@class,'TOViolet')]",
     ],
-    # submit button — labelled "Submit" on royalwin6
+    # submit button
     "confirm": [
+        "//button[contains(@class,'submit-btn')]",
         "//button[normalize-space()='Submit']",
-        "//button[normalize-space()='Confirm']",
-        "//button[contains(@class,'submit')]",
-        "//button[contains(@class,'confirm')]",
-        "//*[contains(@class,'submit-btn')]",
     ],
 }
 
@@ -174,15 +158,17 @@ class WingoBot:
     # ── Game state ────────────────────────────────────────────────────────────
 
     def _get_timer(self) -> int:
-        # Parse the countdown from the full page text — handles HH:MM:SS and MM:SS
+        # Read the count-down span which shows "HH:MM:SS" or "MM:SS"
         try:
-            body_text = self.driver.find_element(By.TAG_NAME, "body").text
-            # HH:MM:SS
-            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\s*:\s*(\d{2})\b", body_text)
+            el = self._find(SEL["timer"], timeout=3)
+            text = (el.text or el.get_attribute("textContent") or "").strip() if el else ""
+            if not text:
+                # Fallback: scan body text for any HH:MM:SS / MM:SS pattern
+                text = self.driver.find_element(By.TAG_NAME, "body").text
+            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\s*:\s*(\d{2})\b", text)
             if m:
                 return int(m.group(1))*3600 + int(m.group(2))*60 + int(m.group(3))
-            # MM:SS
-            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\b", body_text)
+            m = re.search(r"\b(\d{1,2})\s*:\s*(\d{2})\b", text)
             if m:
                 return int(m.group(1))*60 + int(m.group(2))
         except Exception:
@@ -198,8 +184,17 @@ class WingoBot:
     def _set_amount(self, amount: int):
         el = self._find(SEL["amount"])
         if el:
-            el.clear()
-            el.send_keys(str(amount))
+            try:
+                # React/Vue inputs need JS value set + input event to register
+                self.driver.execute_script(
+                    "arguments[0].value = arguments[1]; "
+                    "arguments[0].dispatchEvent(new Event('input', {bubbles:true})); "
+                    "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+                    el, str(amount)
+                )
+            except Exception:
+                el.clear()
+                el.send_keys(str(amount))
 
     def _place_bet(self, color: str, amount: int) -> bool:
         self._set_amount(amount)

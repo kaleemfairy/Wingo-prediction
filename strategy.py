@@ -52,7 +52,18 @@ class BettingStrategy:
 
 
 def _is_win(bet: str, result: str) -> bool:
+    """Color Win 15s returns a digit 0-9.
+    Mapping: 1,3,7,9 → green; 2,4,6,8 → red; 0 → red+violet; 5 → green+violet
+    """
+    r = result.strip()
+    if r.isdigit():
+        n = int(r)
+        if bet == "violet": return n in (0, 5)
+        if bet == "green":  return n in (1, 3, 5, 7, 9)
+        if bet == "red":    return n in (0, 2, 4, 6, 8)
+        return False
+    # Fallback for plain colour text results
     if bet == result: return True
-    if bet == "red"   and result == "0": return True
-    if bet == "green" and result == "5": return True
+    if bet == "red"    and result == "0": return True
+    if bet == "green"  and result == "5": return True
     return False

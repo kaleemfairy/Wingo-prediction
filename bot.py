@@ -13,13 +13,16 @@ import re
 import sys
 import time
 
-import undetected_chromedriver as uc
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
     NoSuchElementException, TimeoutException, WebDriverException
 )
+from webdriver_manager.chrome import ChromeDriverManager
 from colorama import Fore, Style, init as colorama_init
 
 from config import (
@@ -85,42 +88,20 @@ class WingoBot:
     # ── Driver ────────────────────────────────────────────────────────────────
 
     def start(self):
-        opts = uc.ChromeOptions()
+        opts = Options()
         if HEADLESS:
             opts.add_argument("--headless=new")
         opts.add_argument("--no-sandbox")
         opts.add_argument("--disable-dev-shm-usage")
-        opts.add_argument("--disable-blink-features=AutomationControlled")
+        opts.add_argument("--start-maximized")
+        opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+        opts.add_experimental_option("useAutomationExtension", False)
 
-        log.info("Opening Chrome …")
-        chrome_ver = self._get_chrome_version()
-        log.info("Detected Chrome version: %s", chrome_ver)
-        self.driver = uc.Chrome(options=opts, version_main=chrome_ver)
-        self.driver.maximize_window()
+        log.info("Opening Chrome (downloading matching ChromeDriver automatically) …")
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(service=service, options=opts)
         self.driver.get(GAME_URL)
         log.info("Browser opened at %s", GAME_URL)
-
-    @staticmethod
-    def _get_chrome_version() -> int:
-        """Read the installed Chrome major version from the registry (Windows)."""
-        try:
-            import winreg
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                                 r"Software\Google\Chrome\BLBeacon")
-            ver, _ = winreg.QueryValueEx(key, "version")
-            return int(ver.split(".")[0])
-        except Exception:
-            pass
-        try:
-            import subprocess
-            out = subprocess.check_output(
-                r'reg query "HKLM\SOFTWARE\Google\Chrome\BLBeacon" /v version',
-                shell=True, stderr=subprocess.DEVNULL
-            ).decode()
-            ver = out.strip().split()[-1]
-            return int(ver.split(".")[0])
-        except Exception:
-            return 149   # fallback
 
     def quit(self):
         if self.driver:

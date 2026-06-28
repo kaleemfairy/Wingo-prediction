@@ -49,7 +49,8 @@ log = logging.getLogger(__name__)
 GAME_URL             = "https://www.royalwin6.com/lottery-bet/SELF_MONEY_TREE_30S"
 BASE_BET             = 10        # Rs — starting bet, also reset-to amount after a win
 MAX_BET              = 5000      # never bet more than this
-BET_OPTION           = "large"   # "large" or "small"  ← change per your prediction
+BET_OPTION           = "large"   # default when no pattern detected: "large" or "small"
+STRATEGY             = "pattern" # "flat" = always BET_OPTION; "pattern" = anti-streak
 TARGET_PROFIT        = 500       # stop when session profit reaches this
 STOP_LOSS            = -1000     # stop when session loss reaches this
 MAX_CONSECUTIVE_LOSS = 6         # stop after N losses in a row
@@ -116,6 +117,7 @@ class MoneyTreeBot:
         self.wins         = 0
         self._last_draw   = ""
         self._pending     = None   # {"option": "large", "amount": 10}
+        self._results     = []     # history of "large"/"small" outcomes for pattern logic
 
     # ── Driver ────────────────────────────────────────────────────────────────
 
@@ -268,18 +270,35 @@ class MoneyTreeBot:
 
     def _set_amount(self, amount: int):
         el = self._find_one(SEL["amount"])
-        if el:
+        if not el:
+            return
+        try:
+            # React controlled inputs ignore direct .value assignment.
+            # Use the native HTMLInputElement setter so React's onChange fires.
+            self.driver.execute_script("""
+                var nativeSetter = Object.getOwnPropertyDescriptor(
+                    window.HTMLInputElement.prototype, 'value').set;
+                nativeSetter.call(arguments[0], arguments[1]);
+                arguments[0].dispatchEvent(new Event('input',  {bubbles: true}));
+                arguments[0].dispatchEvent(new Event('change', {bubbles: true}));
+            """, el, str(amount))
+        except Exception:
             try:
-                # React/Ant input needs JS to trigger onChange
-                self.driver.execute_script(
-                    "arguments[0].value = arguments[1];"
-                    "arguments[0].dispatchEvent(new Event('input',{bubbles:true}));"
-                    "arguments[0].dispatchEvent(new Event('change',{bubbles:true}));",
-                    el, str(amount)
-                )
-            except Exception:
-                el.clear()
+                from selenium.webdriver.common.keys import Keys
+                el.click()
+                el.send_keys(Keys.CONTROL + 'a')
                 el.send_keys(str(amount))
+            except Exception:
+                pass
+
+    def _pick_side(self) -> str:
+        """Pattern strategy: if last 3 results are identical, bet the opposite."""
+        if STRATEGY != "pattern" or len(self._results) < 3:
+            return BET_OPTION
+        last3 = self._results[-3:]
+        if len(set(last3)) == 1:
+            return "small" if last3[-1] == "large" else "large"
+        return BET_OPTION
 
     def _place_bet(self, option: str, amount: int) -> bool:
         # 0. Clear any previously selected bets (prevents number bets sneaking in)
@@ -342,7 +361,7 @@ class MoneyTreeBot:
         print(Fore.CYAN + "=" * 55)
         print(Fore.YELLOW + "\n  LOG IN to Royalwin in the browser window.")
         print(Fore.YELLOW + "  After login, come back here and press Enter.")
-        print(Fore.YELLOW + f"\n  Betting on : {BET_OPTION.upper()}")
+        print(Fore.YELLOW + f"\n  Strategy   : {STRATEGY.upper()}  (default side: {BET_OPTION.upper()})")
         print(Fore.YELLOW + f"  Base bet   : {BASE_BET}  |  Max bet: {MAX_BET}")
         print(Fore.YELLOW +  "  On loss    : bet × 2.5  (prev × 1.5 + prev)")
         input(Fore.WHITE + "\n  [Press Enter after you are logged in] ")
@@ -392,6 +411,7 @@ class MoneyTreeBot:
         if draw_id and draw_id != self._last_draw and self._pending is not None:
             self._last_draw = draw_id
             if outcome:
+                self._results.append(outcome)
                 won = (outcome == self._pending["option"])
                 if won:
                     self._record_win(self._pending["amount"])
@@ -401,12 +421,14 @@ class MoneyTreeBot:
                 log.warning("Could not parse result for draw %s", draw_id)
             self._pending = None
 
-        # Place bet
+        # Pick side using pattern prediction
+        side   = self._pick_side()
         amount = min(self.current_bet, MAX_BET)
-        print(Fore.CYAN + f"\n  Timer: {timer}s  |  Bet → {BET_OPTION.upper()}  Rs {amount}")
-        ok = self._place_bet(BET_OPTION, amount)
+        print(Fore.CYAN + f"\n  Timer: {timer}s  |  Predict → {side.upper()}  Rs {amount}"
+              + (Fore.YELLOW + "  [anti-streak]" if side != BET_OPTION else ""))
+        ok = self._place_bet(side, amount)
         if ok:
-            self._pending = {"option": BET_OPTION, "amount": amount}
+            self._pending = {"option": side, "amount": amount}
             self.rounds += 1
             print(Fore.GREEN + "  Bet placed ✓")
         else:

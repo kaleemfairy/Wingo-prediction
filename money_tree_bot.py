@@ -53,7 +53,7 @@ BET_OPTION           = "large"   # "large" or "small"  ← change per your predi
 TARGET_PROFIT        = 500       # stop when session profit reaches this
 STOP_LOSS            = -1000     # stop when session loss reaches this
 MAX_CONSECUTIVE_LOSS = 6         # stop after N losses in a row
-BET_CUTOFF_SECONDS   = 5         # skip round if fewer than N seconds remain
+BET_CUTOFF_SECONDS   = 12        # skip round if fewer than N seconds remain (3-step bet takes ~5s + 3s draw-close buffer)
 WIN_MULTIPLIER       = 1.96      # payout multiplier shown on site (odds 1.96)
 HEADLESS             = False
 # ═══════════════════════════════════════════════════════
@@ -324,7 +324,8 @@ class MoneyTreeBot:
         if timer < BET_CUTOFF_SECONDS:
             secs = max(timer, 0)
             print(Fore.YELLOW + f"  {secs}s left — waiting for next round …")
-            time.sleep(secs + 3)
+            # Sleep past the end of this round so next tick starts a fresh round
+            time.sleep(min(secs + 5, 40))
             return
 
         # Check for a new result (from the round we bet on previously)
@@ -352,9 +353,10 @@ class MoneyTreeBot:
         else:
             print(Fore.RED + "  Bet failed — run find_selectors.py to debug popup buttons")
 
-        # Wait for the round to finish, then come back for result + next bet
-        wait = max(timer - 3, 5)
-        time.sleep(wait)
+        # Sleep past the end of this round so next tick starts a fresh round.
+        # timer was read at the START of this tick (before placing bet ~5s ago),
+        # so sleeping timer+2 guarantees we wake up a few seconds into the NEXT round.
+        time.sleep(min(timer + 2, 40))
 
     def _check_stop(self) -> bool:
         p  = self.total_profit

@@ -49,8 +49,17 @@ log = logging.getLogger(__name__)
 GAME_URL             = "https://www.royalwin6.com/lottery-bet/SELF_MONEY_TREE_30S"
 BASE_BET             = 10        # Rs — starting bet, also reset-to amount after a win
 MAX_BET              = 5000      # never bet more than this
-BET_OPTION           = "large"   # default when no pattern detected: "large" or "small"
-STRATEGY             = "pattern" # "flat" = always BET_OPTION; "pattern" = anti-streak
+BET_OPTION           = "large"   # fallback side when strategy has no history yet
+#
+# ── STRATEGY options ──────────────────────────────────────────────────────────
+#  "flat"       always bet BET_OPTION, no prediction
+#  "anti_last"  bet opposite of last draw result  (BEST for variety — recommended)
+#  "follow"     bet same as last draw result  (momentum / streak-following)
+#  "alternate"  LARGE → SMALL → LARGE → … ignores results entirely
+#  "pattern"    if last 2 draws same → flip; else bet opposite of last result
+#  "frequency"  look at last 20 draws; bet whichever side appeared less often
+# ─────────────────────────────────────────────────────────────────────────────
+STRATEGY             = "anti_last"
 TARGET_PROFIT        = 500       # stop when session profit reaches this
 STOP_LOSS            = -1000     # stop when session loss reaches this
 MAX_CONSECUTIVE_LOSS = 6         # stop after N losses in a row
@@ -117,7 +126,8 @@ class MoneyTreeBot:
         self.wins         = 0
         self._last_draw   = ""
         self._pending     = None   # {"option": "large", "amount": 10}
-        self._results     = []     # history of "large"/"small" outcomes for pattern logic
+        self._results     = []     # history of "large"/"small" outcomes for prediction
+        self._last_placed = BET_OPTION  # tracks last side placed (for alternate strategy)
 
     # ── Driver ────────────────────────────────────────────────────────────────
 
@@ -292,12 +302,41 @@ class MoneyTreeBot:
                 pass
 
     def _pick_side(self) -> str:
-        """Pattern strategy: if last 3 results are identical, bet the opposite."""
-        if STRATEGY != "pattern" or len(self._results) < 3:
+        hist = self._results
+        flip = {"large": "small", "small": "large"}
+
+        if STRATEGY == "flat" or not hist:
             return BET_OPTION
-        last3 = self._results[-3:]
-        if len(set(last3)) == 1:
-            return "small" if last3[-1] == "large" else "large"
+
+        if STRATEGY == "anti_last":
+            # Always bet opposite of what just came out
+            return flip[hist[-1]]
+
+        if STRATEGY == "follow":
+            # Ride the streak — bet same as last result
+            return hist[-1]
+
+        if STRATEGY == "alternate":
+            # Ignore results; just flip from the last BET placed
+            return flip.get(self._last_placed, BET_OPTION)
+
+        if STRATEGY == "pattern":
+            # If last 2 draws identical → flip; otherwise bet opposite of last
+            if len(hist) >= 2 and hist[-1] == hist[-2]:
+                return flip[hist[-1]]
+            return flip[hist[-1]]
+
+        if STRATEGY == "frequency":
+            # Bet whichever side appeared LESS in last 20 draws (expect balance)
+            window = hist[-20:]
+            large_n = window.count("large")
+            small_n = window.count("small")
+            if large_n > small_n:
+                return "small"
+            if small_n > large_n:
+                return "large"
+            return BET_OPTION
+
         return BET_OPTION
 
     def _place_bet(self, option: str, amount: int) -> bool:
@@ -361,7 +400,7 @@ class MoneyTreeBot:
         print(Fore.CYAN + "=" * 55)
         print(Fore.YELLOW + "\n  LOG IN to Royalwin in the browser window.")
         print(Fore.YELLOW + "  After login, come back here and press Enter.")
-        print(Fore.YELLOW + f"\n  Strategy   : {STRATEGY.upper()}  (default side: {BET_OPTION.upper()})")
+        print(Fore.YELLOW + f"\n  Strategy   : {STRATEGY}  |  Fallback: {BET_OPTION.upper()}")
         print(Fore.YELLOW + f"  Base bet   : {BASE_BET}  |  Max bet: {MAX_BET}")
         print(Fore.YELLOW +  "  On loss    : bet × 2.5  (prev × 1.5 + prev)")
         input(Fore.WHITE + "\n  [Press Enter after you are logged in] ")
@@ -424,11 +463,12 @@ class MoneyTreeBot:
         # Pick side using pattern prediction
         side   = self._pick_side()
         amount = min(self.current_bet, MAX_BET)
-        print(Fore.CYAN + f"\n  Timer: {timer}s  |  Predict → {side.upper()}  Rs {amount}"
-              + (Fore.YELLOW + "  [anti-streak]" if side != BET_OPTION else ""))
+        last_res = f"  last={self._results[-1].upper()}" if self._results else ""
+        print(Fore.CYAN + f"\n  Timer: {timer}s  |  [{STRATEGY}]{last_res}  →  Bet {side.upper()}  Rs {amount}")
         ok = self._place_bet(side, amount)
         if ok:
-            self._pending = {"option": side, "amount": amount}
+            self._pending     = {"option": side, "amount": amount}
+            self._last_placed = side
             self.rounds += 1
             print(Fore.GREEN + "  Bet placed ✓")
         else:

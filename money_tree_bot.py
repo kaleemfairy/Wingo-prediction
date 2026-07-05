@@ -47,9 +47,17 @@ log = logging.getLogger(__name__)
 #  SETTINGS  — edit these before running
 # ═══════════════════════════════════════════════════════
 GAME_URL             = "https://www.royalwin6.com/lottery-bet/SELF_MONEY_TREE_30S"
-BASE_BET             = 2         # Rs — starting bet, also reset-to amount after a win
-MAX_BET              = 5000      # never bet more than this
 BET_OPTION           = "large"   # fallback side when strategy has no history yet
+#
+# ── BET LEVEL TABLE ───────────────────────────────────────────────────────────
+#  Fixed progression: Level 1 = ₹2, Level 2 = ₹5, … Level 10 = ₹1838
+#  Win  → reset to Level 1.   Loss → move to next level.
+#  If all 10 levels lose, the bot stops automatically.
+#  Adjust or extend this list as needed.
+# ─────────────────────────────────────────────────────────────────────────────
+BET_LEVELS           = [2, 5, 11, 21, 44, 93, 196, 413, 871, 1838]
+BASE_BET             = BET_LEVELS[0]  # ₹2  (derived — do not edit directly)
+MAX_BET              = BET_LEVELS[-1] # ₹1838 safety cap
 #
 # ── STRATEGY options ──────────────────────────────────────────────────────────
 #  "flat"       always bet BET_OPTION, no prediction
@@ -127,7 +135,8 @@ SEL = {
 class MoneyTreeBot:
     def __init__(self):
         self.driver       = None
-        self.current_bet  = BASE_BET
+        self._level       = 0
+        self.current_bet  = BET_LEVELS[0]
         self.total_profit = 0.0
         self.cons_losses  = 0
         self.rounds       = 0
@@ -411,14 +420,21 @@ class MoneyTreeBot:
         self.total_profit += profit
         self.wins += 1
         self.cons_losses = 0
-        self.current_bet = BASE_BET
-        print(Fore.GREEN + f"  WIN  +{profit:.2f}  |  Total: {self.total_profit:+.2f}  |  Next bet: {self.current_bet}")
+        self._level      = 0
+        self.current_bet = BET_LEVELS[0]
+        print(Fore.GREEN + f"  WIN  +{profit:.2f}  |  Total: {self.total_profit:+.2f}"
+              f"  |  Reset → Level 1  ₹{self.current_bet}")
 
     def _record_loss(self, amount: int):
         self.total_profit -= amount
-        self.cons_losses += 1
-        self.current_bet = min(round(self.current_bet * 2.5), MAX_BET)
-        print(Fore.RED + f"  LOSS -{amount}  |  Total: {self.total_profit:+.2f}  |  Next bet: {self.current_bet}")
+        self.cons_losses  += 1
+        next_level = self._level + 1
+        if next_level >= len(BET_LEVELS):
+            next_level = len(BET_LEVELS) - 1   # stay at last level (stop check will fire)
+        self._level      = next_level
+        self.current_bet = BET_LEVELS[self._level]
+        print(Fore.RED + f"  LOSS -{amount}  |  Total: {self.total_profit:+.2f}"
+              f"  |  Level {self._level + 1}  →  Next ₹{self.current_bet}")
 
     # ── Main loop ─────────────────────────────────────────────────────────────
 
@@ -433,8 +449,8 @@ class MoneyTreeBot:
             print(Fore.YELLOW + f"  Cycle      : {' → '.join(STRATEGY_ROTATION)}")
         else:
             print(Fore.YELLOW + f"\n  Strategy   : {STRATEGY}  |  Fallback: {BET_OPTION.upper()}")
-        print(Fore.YELLOW + f"  Base bet   : {BASE_BET}  |  Max bet: {MAX_BET}")
-        print(Fore.YELLOW +  "  On loss    : bet × 2.5  (prev × 1.5 + prev)")
+        levels_str = "  |  ".join(f"L{i+1}=₹{v}" for i, v in enumerate(BET_LEVELS))
+        print(Fore.YELLOW + f"  Levels     : {levels_str}")
         input(Fore.WHITE + "\n  [Press Enter after you are logged in] ")
 
         self.driver.get(GAME_URL)
@@ -523,11 +539,14 @@ class MoneyTreeBot:
     def _check_stop(self) -> bool:
         p  = self.total_profit
         cl = self.cons_losses
-        nb = min(self.current_bet, MAX_BET)
-        if p  >= TARGET_PROFIT:        print(Fore.GREEN + f"\nTarget profit reached ({p:.0f}). Stopping."); return True
-        if p  <= STOP_LOSS:            print(Fore.RED   + f"\nStop loss hit ({p:.0f}). Stopping.");         return True
-        if cl >= MAX_CONSECUTIVE_LOSS: print(Fore.RED   + f"\n{cl} losses in a row. Stopping.");            return True
-        if nb >  MAX_BET:              print(Fore.RED   + f"\nNext bet {nb} > max {MAX_BET}. Stopping.");   return True
+        if p  >= TARGET_PROFIT:
+            print(Fore.GREEN + f"\nTarget profit reached ({p:.0f}). Stopping."); return True
+        if p  <= STOP_LOSS:
+            print(Fore.RED + f"\nStop loss hit ({p:.0f}). Stopping."); return True
+        if cl >= MAX_CONSECUTIVE_LOSS:
+            print(Fore.RED + f"\n{cl} losses in a row. Stopping."); return True
+        if self._level >= len(BET_LEVELS) - 1 and cl > 0:
+            print(Fore.RED + f"\nAll {len(BET_LEVELS)} bet levels exhausted. Stopping."); return True
         return False
 
     def _print_summary(self):
